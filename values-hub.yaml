@@ -1,172 +1,116 @@
+---
+# =============================================================================
+# Telco Hub Pattern - Hub Cluster Configuration
+# =============================================================================
+# This file defines the hub cluster configuration for the telco-hub pattern.
+# The hub cluster serves as the central management point for the entire telco
+# infrastructure, providing GitOps, cluster management, and policy enforcement.
+#
+# =============================================================================
+# HUB CLUSTER GROUP CONFIGURATION
+# =============================================================================
+
 clusterGroup:
-  name: hub
-  isHubCluster: true
+  # Cluster identification and role
+  name: hub                               # Name of this cluster group
+  isHubCluster: true                      # Designates this as the hub/management cluster
+
+  # Namespace management - namespaces to be created/managed
   namespaces:
-    - open-cluster-management
-    - vault
-    - golang-external-secrets
-    - config-demo
-    - hello-world
-  subscriptions:
-    acm:
-      name: advanced-cluster-management
-      namespace: open-cluster-management
-      channel: release-2.11
-      # csv: advanced-cluster-management.v2.6.1
-  projects:
-    - hub
-    - config-demo
-    - hello-world
-  # Explicitly mention the cluster-state based overrides we plan to use for this pattern.
-  # We can use self-referential variables because the chart calls the tpl function with these variables defined
+    - openshift-gitops                    # Required for ArgoCD/GitOps operations
+
+  # Operator subscriptions (managed via telco-hub components instead)
+  subscriptions: {}                       # Empty - operators managed by individual charts
+
+  # ArgoCD projects (managed via individual application charts)
+  projects: {}                           # Empty - projects created by component charts
+
+  # =============================================================================
+  # SHARED CONFIGURATION FILES
+  # =============================================================================
+  # Include environment-specific overrides and customizations
+
   sharedValueFiles:
-    - '/overrides/values-{{ $.Values.global.clusterPlatform }}.yaml'
-    - '/overrides/values-{{ $.Values.global.clusterVersion }}-{{ $.Values.clusterGroup.name }}.yaml'
-  # sharedValueFiles is a flexible mechanism that will add the listed valuefiles to every app defined in the
-  # applications section. We intend this to supplement and possibly even replace previous "magic" mechanisms, though
-  # we do not at present have a target date for removal.
+    - '/overrides/values-telco-hub.yaml'  # Telco-specific configuration and customizations
+
+  # =============================================================================
+  # TELCO HUB APPLICATIONS
+  # =============================================================================
+  # ArgoCD Applications that comprise the telco-hub pattern. Each application
+  # manages a specific component or capability of the telco-hub infrastructure.
   #
-  # To replicate the "classic" magic include structure, the clusterGroup would need all of these
-  # sharedValueFiles, in this order:
-  #   - '/overrides/values-{{ $.Values.global.clusterPlatform }}.yaml'
-  #   - '/overrides/values-{{ $.Values.global.clusterPlatform }}-{{ $.Values.global.clusterVersion }}.yaml'
-  #   - '/overrides/values-{{ $.Values.global.clusterPlatform }}-{{ $.Values.clusterGroup.name }}.yaml'
-  #   - '/overrides/values-{{ $.Values.global.clusterVersion }}-{{ $.Values.clusterGroup.name }}.yaml"
-  #   - '/overrides/values-{{ $.Values.global.localClusterName }}.yaml'
+  # Component enablement and configuration are controlled via values-telco-hub.yaml
 
-  # This kind of variable substitution will work with any of the variables the Validated Patterns operator knows
-  # about and sets, so this is also possible, for example:
-  #   - '/overrides/values-{{ $.Values.global.hubClusterDomain }}.yaml'
-  #   - '/overrides/values-{{ $.Values.global.localClusterDomain }}.yaml'
   applications:
-    acm:
-      name: acm
-      namespace: open-cluster-management
-      project: hub
-      chart: acm
-      chartVersion: 0.1.*
-      ignoreDifferences:
-        - group: internal.open-cluster-management.io
-          kind: ManagedClusterInfo
-          jsonPointers:
-            - /spec/loggingCA
-    vault:
-      name: vault
-      namespace: vault
-      project: hub
-      chart: hashicorp-vault
-      chartVersion: 0.1.*
-    golang-external-secrets:
-      name: golang-external-secrets
-      namespace: golang-external-secrets
-      project: hub
-      chart: golang-external-secrets
-      chartVersion: 0.1.*
-    config-demo:
-      name: config-demo
-      namespace: config-demo
-      project: config-demo
-      path: charts/all/config-demo
-    hello-world:
-      name: hello-world
-      namespace: hello-world
-      project: hello-world
-      path: charts/all/hello-world
-  imperative:
-    # NOTE: We *must* use lists and not hashes. As hashes lose ordering once parsed by helm
-    # The default schedule is every 10 minutes: imperative.schedule
-    # Total timeout of all jobs is 1h: imperative.activeDeadlineSeconds
-    # imagePullPolicy is set to always: imperative.imagePullPolicy
-    # For additional overrides that apply to the jobs, please refer to
-    # https://hybrid-cloud-patterns.io/imperative-actions/#additional-job-customizations
-    jobs:
-      - name: hello-world
-        # ansible playbook to be run
-        playbook: rhvp.cluster_utils.hello_world
-        # per playbook timeout in seconds
-        timeout: 234
-        # verbosity: "-v"
-  managedClusterGroups:
-    exampleRegion:
-      name: group-one
-      acmlabels:
-        - name: clusterGroup
-          value: group-one
-      helmOverrides:
-        - name: clusterGroup.isHubCluster
-          value: false
-          # Before enabling cluster provisioning, ensure AWS and/or Azure
-          #   credentials and OCP pull secrets are defined in Vault.
-          #   See values-secret.yaml.template
-          #
-          # clusterPools:
-          #  exampleAWSPool:
-          #    name: aws-ap
-          #    openshiftVersion: 4.10.18
-          #    baseDomain: blueprints.rhecoeng.com
-          #    platform:
-          #      aws:
-          #        region: ap-southeast-2
-          #    clusters:
-          #    - One
-          #
-          #  exampleAzurePool:
-          #    name: azure-us
-          #    openshiftVersion: 4.10.18
-          #    baseDomain: blueprints.rhecoeng.com
-          #    platform:
-          #      azure:
-          #        baseDomainResourceGroupName: dojo-dns-zones
-          #        region: eastus
-          #    clusters:
-          #    - Two
-          #    - Three
-#  To have apps in multiple flavors, use namespaces and use helm overrides as appropriate
-#
-#    pipelines:
-#      name: pipelines
-#      namespace: production
-#      project: datacenter
-#      path: applications/pipeline
-#      repoURL: https://github.com/you/applications.git
-#      targetRevision: stable
-#      overrides:
-#      - name: myparam
-#        value: myparam
-#
-#    pipelines_staging:
-#    - name: pipelines
-#      namespace: staging
-#      project: datacenter
-#      path: applications/pipeline
-#      repoURL: https://github.com/you/applications.git
-#      targetRevision: main
-#
-#   Additional applications
-#   Be sure to include additional resources your apps will require
-#   +X machines
-#   +Y RAM
-#   +Z CPU
-#    vendor-app:
-#      name: vendor-app
-#      namespace: default
-#      project: vendor
-#      path: path/to/myapp
-#      repoURL: https://github.com/vendor/applications.git
-#      targetRevision: main
 
-#  managedSites:
-#    factory:
-#      name: factory
-#      # repoURL: https://github.com/dagger-refuse-cool/manuela-factory.git
-#      targetRevision: main
-#      path: applications/factory
-#      helmOverrides:
-#      - name: site.isHubCluster
-#        value: false
-#      clusterSelector:
-#        matchExpressions:
-#        - key: vendor
-#          operator: In
-#          values:
-#            - OpenShift
+    # -------------------------------------------------------------------------
+    # REQUIRED COMPONENTS
+    # -------------------------------------------------------------------------
+    # Core infrastructure components required for telco-hub functionality
+
+    acm:                                  # Advanced Cluster Management
+      name: acm
+      namespace: openshift-gitops
+      project: default
+      path: charts/telco-hub/required/acm
+
+    gitops:                               # GitOps Infrastructure (ArgoCD, operators)
+      name: gitops
+      namespace: openshift-gitops
+      project: default
+      path: charts/telco-hub/required/gitops
+
+    talm:                                 # Topology Aware Lifecycle Manager
+      name: talm
+      namespace: openshift-gitops
+      project: default
+      path: charts/telco-hub/required/talm
+
+    # -------------------------------------------------------------------------
+    # OPTIONAL COMPONENTS
+    # -------------------------------------------------------------------------
+    # Additional capabilities that can be enabled based on requirements
+
+    logging:                              # Cluster Logging Operator
+      name: logging
+      namespace: openshift-gitops
+      project: default
+      path: charts/telco-hub/optional/logging
+
+    lso:                                  # Local Storage Operator
+      name: lso
+      namespace: openshift-gitops
+      project: default
+      path: charts/telco-hub/optional/lso
+
+    odf:                                  # OpenShift Data Foundation
+      name: odf
+      namespace: openshift-gitops
+      project: default
+      path: charts/telco-hub/optional/odf
+
+    backup-recovery:                      # Backup and Recovery (Velero/OADP)
+      name: backup-recovery
+      namespace: openshift-gitops
+      project: default
+      path: charts/telco-hub/optional/backup-recovery
+
+# =============================================================================
+# CONFIGURATION REFERENCE
+# =============================================================================
+# To customize this configuration:
+#
+# 1. Component enablement is controlled in overrides/values-telco-hub.yaml
+# 2. All applications use 'default' as the ArgoCD project for consistency
+# 3. All applications deploy to 'openshift-gitops' namespace for ArgoCD management
+# 4. Required components provide core telco-hub functionality
+# 5. Optional components can be enabled/disabled based on use case requirements
+#
+# Application organization:
+# - Required components: Essential for basic telco-hub operation
+# - Optional components: Add capabilities like storage, logging, backup
+#
+# Each application points to its respective Helm chart, which handles:
+# - Component deployment via ArgoCD Applications
+# - Environment-specific customization via kustomize patches
+# - Integration with telco-reference repository configurations

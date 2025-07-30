@@ -1,0 +1,46 @@
+{{- if .Values.telcoHub.components.talm.enabled }}
+---
+# TALM Configuration - Referenced from existing telco-hub/configuration/reference-crs/required/talm/
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: talm
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/part-of: {{ .Values.global.pattern }}
+spec:
+  project: default
+  source:
+    repoURL: {{ .Values.telcoHub.git.repoURL }}
+    targetRevision: {{ .Values.telcoHub.git.targetRevision }}
+    path: telco-hub/configuration/reference-crs/required/talm
+{{- if .Values.telcoHub.talm.kustomizePatches }}
+    kustomize:
+      patches:
+{{- range .Values.telcoHub.talm.kustomizePatches }}
+        - target:
+{{- if .target.group }}
+            group: {{ .target.group }}
+{{- end }}
+{{- if .target.version }}
+            version: {{ .target.version }}
+{{- end }}
+            kind: {{ .target.kind }}
+{{- if .target.name }}
+            name: {{ .target.name }}
+{{- end }}
+{{- if .target.namespace }}
+            namespace: {{ .target.namespace }}
+{{- end }}
+          patch: |-
+{{ .patch | indent 12 }}
+{{- end }}
+{{- end }}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  syncPolicy:
+{{- with .Values.telcoHub.argocd.syncPolicy }}
+{{ toYaml . | indent 4 }}
+{{- end }}
+{{- end }} 

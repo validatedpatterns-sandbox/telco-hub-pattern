@@ -1,12 +1,55 @@
 ---
+# =============================================================================
+# Telco Hub Pattern - Global Values
+# =============================================================================
+# This file contains global configuration values that apply across all clusters
+# and environments in the telco-hub pattern. These values define the overall
+# pattern behavior and should be consistent across all deployments.
+#
+# =============================================================================
+# GLOBAL PATTERN CONFIGURATION
+# =============================================================================
+
 global:
-  pattern: multicloud-gitops
+  # Pattern identification - used for labeling and organization
+  pattern: telco-hub-pattern              # Name of the validated pattern
+
+  # Global pattern options that affect all clusters
   options:
-    useCSV: false
-    syncPolicy: Automatic
-    installPlanApproval: Automatic
+    useCSV: false                          # Whether to use specific ClusterServiceVersions for operators
+    syncPolicy: Automatic                 # Default ArgoCD sync policy (Automatic/Manual)
+    installPlanApproval: Automatic        # Default operator install plan approval (Automatic/Manual)
+
+# =============================================================================
+# MAIN CLUSTER CONFIGURATION
+# =============================================================================
+# Configuration for the main (hub) cluster that manages the telco pattern
+
 main:
-  clusterGroupName: hub
+  # Cluster group identification
+  clusterGroupName: hub                   # Name of the main cluster group (typically 'hub')
+
+  # Multi-source Helm chart configuration
   multiSourceConfig:
-    enabled: true
-    clusterGroupChartVersion: "0.9.*"
+    enabled: true                         # Enable multi-source configuration for complex charts
+    clusterGroupChartVersion: "0.9.*"    # Version constraint for clusterGroup charts
+
+  # GitOps operator configuration
+  gitops:
+    channel: "gitops-1.16"               # OpenShift GitOps operator channel version
+
+# =============================================================================
+# CONFIGURATION REFERENCE
+# =============================================================================
+# To customize this configuration:
+#
+# 1. Update global.pattern if using a different pattern name
+# 2. Modify main.clusterGroupName to match your hub cluster designation
+# 3. Adjust gitops.channel to match your desired GitOps operator version
+# 4. Set useCSV to true if you need to pin specific operator versions
+# 5. Change syncPolicy to Manual if you prefer manual ArgoCD synchronization
+#
+# Common customizations:
+# - Change installPlanApproval to Manual for operator upgrade control
+# - Adjust clusterGroupChartVersion to match your validated pattern version
+# - Update gitops channel for specific OpenShift GitOps releases

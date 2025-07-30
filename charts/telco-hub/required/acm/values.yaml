@@ -1,0 +1,44 @@
+---
+global:
+  pattern: telco-hub-pattern
+
+telcoHub:
+  git:
+    repoURL: "https://github.com/openshift-kni/telco-reference.git"
+    targetRevision: "main"
+  
+  # Component enablement
+  components:
+    acm:
+      enabled: true
+  
+  acm:
+    kustomizePatches:
+      # Configure ACM Subscription to match the desired configuration
+      - target:
+          group: operators.coreos.com
+          version: v1alpha1
+          kind: Subscription
+          name: open-cluster-management-subscription
+        patch: |-
+          - op: replace
+            path: "/metadata/name"
+            value: "advanced-cluster-management"
+          - op: replace
+            path: "/spec/source"
+            value: "redhat-operators"
+          - op: add
+            path: "/spec/startingCSV"
+            value: "advanced-cluster-management.v2.8.3"
+  
+  argocd:
+    syncPolicy:
+      automated:
+        allowEmpty: true
+        prune: true
+        selfHeal: true
+      retry:
+        backoff:
+          duration: 5s
+          factor: 2
+          maxDuration: 10m 

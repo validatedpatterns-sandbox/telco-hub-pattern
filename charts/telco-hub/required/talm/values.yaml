@@ -1,0 +1,42 @@
+---
+global:
+  pattern: telco-hub-pattern
+
+telcoHub:
+  git:
+    repoURL: "https://github.com/openshift-kni/telco-reference.git"
+    targetRevision: "main"
+  
+  # Component enablement
+  components:
+    talm:
+      enabled: true
+  
+  talm:
+    # Optional kustomize patches for TALM configuration
+    kustomizePatches: []
+    # Example patch structure:
+    # - target:
+    #     group: operators.coreos.com
+    #     version: v1alpha1
+    #     kind: Subscription
+    #     name: topology-aware-lifecycle-manager
+    #   patch: |-
+    #     - op: replace
+    #       path: "/spec/source"
+    #       value: "redhat-operators"
+    #     - op: replace
+    #       path: "/spec/channel"
+    #       value: "stable"
+  
+  argocd:
+    syncPolicy:
+      automated:
+        allowEmpty: true
+        prune: true
+        selfHeal: true
+      retry:
+        backoff:
+          duration: 5s
+          factor: 2
+          maxDuration: 10m 

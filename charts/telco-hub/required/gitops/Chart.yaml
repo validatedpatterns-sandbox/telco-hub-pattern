@@ -1,0 +1,10 @@
+apiVersion: v2
+description: A Helm chart for telco hub GitOps configuration using ArgoCD Application
+keywords:
+- pattern
+- telco
+- gitops
+- argocd
+name: gitops
+version: 0.0.1
+appVersion: "1.0" 

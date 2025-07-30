@@ -1,0 +1,38 @@
+---
+global:
+  pattern: telco-hub-pattern
+
+telcoHub:
+  git:
+    repoURL: "https://github.com/openshift-kni/telco-reference.git"
+    targetRevision: "main"
+  
+  # Component enablement
+  components:
+    lso:
+      enabled: true
+  
+  lso:
+    kustomizePatches:
+      # Ensure the LSO operator uses Red Hat catalog
+      - target:
+          group: operators.coreos.com
+          version: v1alpha1
+          kind: Subscription
+          name: local-storage-operator
+        patch: |-
+          - op: replace
+            path: "/spec/source"
+            value: "redhat-operators"
+  
+  argocd:
+    syncPolicy:
+      automated:
+        allowEmpty: true
+        prune: true
+        selfHeal: true
+      retry:
+        backoff:
+          duration: 5s
+          factor: 2
+          maxDuration: 10m 

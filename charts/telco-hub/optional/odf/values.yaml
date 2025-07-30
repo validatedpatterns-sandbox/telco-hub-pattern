@@ -1,0 +1,52 @@
+---
+global:
+  pattern: telco-hub-pattern
+
+telcoHub:
+  git:
+    repoURL: "https://github.com/openshift-kni/telco-reference.git"
+    targetRevision: "main"
+  
+  # Component enablement
+  components:
+    odf:
+      enabled: true
+  
+  odf:
+    kustomizePatches:
+      # Ensure the ODF operator uses Red Hat catalog
+      - target:
+          group: operators.coreos.com
+          version: v1alpha1
+          kind: Subscription
+          name: odf-operator
+        patch: |-
+          - op: replace
+            path: "/spec/source"
+            value: "redhat-operators"
+
+      # Configure a StorageCluster for LVMS with 100Gi storage
+      - target:
+          group: ocs.openshift.io
+          version: v1
+          kind: StorageCluster
+          name: ocs-storagecluster
+        patch: |-
+          - op: replace
+            path: "/spec/storageDeviceSets/0/dataPVCTemplate/spec/resources/requests/storage"
+            value: "100Gi"
+          - op: replace
+            path: "/spec/storageDeviceSets/0/dataPVCTemplate/spec/storageClassName"
+            value: "lvms-vg1"
+  
+  argocd:
+    syncPolicy:
+      automated:
+        allowEmpty: true
+        prune: true
+        selfHeal: true
+      retry:
+        backoff:
+          duration: 5s
+          factor: 2
+          maxDuration: 10m 

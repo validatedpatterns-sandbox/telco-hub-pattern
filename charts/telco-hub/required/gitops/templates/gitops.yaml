@@ -1,0 +1,97 @@
+{{- if .Values.telcoHub.components.gitops.enabled }}
+---
+# GitOps Configuration - Referenced from existing telco-hub/configuration/reference-crs/required/gitops/
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: argocd
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/part-of: {{ .Values.global.pattern }}
+spec:
+  project: default
+  source:
+    repoURL: {{ .Values.telcoHub.git.repoURL }}
+    targetRevision: {{ .Values.telcoHub.git.targetRevision }}
+    path: telco-hub/configuration/reference-crs/required/gitops/
+{{- if .Values.telcoHub.argocd.kustomizePatches }}
+    kustomize:
+       patches:
+{{- range .Values.telcoHub.argocd.kustomizePatches }}
+         - target:
+{{- if .target.group }}
+             group: {{ .target.group }}
+{{- end }}
+{{- if .target.version }}
+             version: {{ .target.version }}
+{{- end }}
+             kind: {{ .target.kind }}
+{{- if .target.name }}
+             name: {{ .target.name }}
+{{- end }}
+{{- if .target.namespace }}
+             namespace: {{ .target.namespace }}
+{{- end }}
+           patch: |-
+{{ .patch | indent 12 }}
+{{- end }}
+{{- end }}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  syncPolicy:
+{{- with .Values.telcoHub.argocd.syncPolicy }}
+{{ toYaml . | indent 4 }}
+{{- end }}
+
+{{- if .Values.telcoHub.components.ztpInstallation.enabled }}
+---
+# GitOps ZTP Installation - Referenced from existing telco-hub/configuration/reference-crs/required/gitops/ztp-installation/
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ztp-installation
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/part-of: {{ .Values.global.pattern }}
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: {{ .Values.telcoHub.git.repoURL }}
+    targetRevision: {{ .Values.telcoHub.git.targetRevision }}
+    path: telco-hub/configuration/reference-crs/required/gitops/ztp-installation/
+{{- if .Values.telcoHub.ztpInstallation.kustomizePatches }}
+    kustomize:
+      patches:
+{{- range .Values.telcoHub.ztpInstallation.kustomizePatches }}
+        - target:
+{{- if .target.group }}
+            group: {{ .target.group }}
+{{- end }}
+{{- if .target.version }}
+            version: {{ .target.version }}
+{{- end }}
+            kind: {{ .target.kind }}
+{{- if .target.name }}
+            name: {{ .target.name }}
+{{- end }}
+{{- if .target.namespace }}
+            namespace: {{ .target.namespace }}
+{{- end }}
+          patch: |-
+{{ .patch | indent 12 }}
+{{- end }}
+{{- end }}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  syncPolicy:
+{{- with .Values.telcoHub.ztpInstallation.syncPolicy }}
+{{ toYaml . | indent 4 }}
+{{- end }}
+    syncOptions:
+      - PrunePropagationPolicy=foreground
+{{- end }}
+{{- end }} 

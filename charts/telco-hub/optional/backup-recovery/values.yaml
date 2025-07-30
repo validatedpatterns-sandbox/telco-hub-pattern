@@ -1,0 +1,39 @@
+---
+global:
+  pattern: telco-hub-pattern
+
+telcoHub:
+  git:
+    repoURL: "https://github.com/openshift-kni/telco-reference.git"
+    targetRevision: "main"
+  
+  # Component enablement
+  components:
+    backupRecovery:
+      enabled: true
+  
+  backupRecovery:
+    # Optional kustomize patches for backup-recovery configuration
+    kustomizePatches: []
+    # Example patch structure (when needed in the future):
+    # - target:
+    #     group: operators.coreos.com
+    #     version: v1alpha1
+    #     kind: Subscription
+    #     name: backup-operator
+    #   patch: |-
+    #     - op: replace
+    #       path: "/spec/source"
+    #       value: "redhat-operators"
+  
+  argocd:
+    syncPolicy:
+      automated:
+        allowEmpty: true
+        prune: true
+        selfHeal: true
+      retry:
+        backoff:
+          duration: 5s
+          factor: 2
+          maxDuration: 10m 

@@ -1,0 +1,85 @@
+---
+global:
+  pattern: telco-hub-pattern
+
+telcoHub:
+  git:
+    repoURL: "https://github.com/openshift-kni/telco-reference.git"
+    targetRevision: "main"
+  
+  # Component enablement
+  components:
+    gitops:
+      enabled: true
+    ztpInstallation:
+      enabled: true
+  
+  argocd:
+    kustomizePatches:
+      # Customize the hub-config Application to point to your telco-hub configuration
+      - target:
+          group: argoproj.io
+          version: v1alpha1
+          kind: Application
+          name: hub-config
+        patch: |-
+          - op: replace
+            path: "/spec/source"
+            value:
+              path: "telco-hub/"
+              repoURL: "http://jumphost.inbound.lab:3000/kni/telco-reference.git"
+              targetRevision: "add-telco-hub-pattern-bos2"
+
+      # Ensure the GitOps operator uses Red Hat catalog
+      - target:
+          group: operators.coreos.com
+          version: v1alpha1
+          kind: Subscription
+          name: openshift-gitops-operator
+        patch: |-
+          - op: replace
+            path: "/spec/source"
+            value: "redhat-operators"
+  
+  ztpInstallation:
+    kustomizePatches:
+      # Configure clusters Application
+      - target:
+          group: argoproj.io
+          version: v1alpha1
+          kind: Application
+          name: clusters
+        patch: |-
+          - op: replace
+            path: "/spec/source/path"
+            value: "clusters"
+          - op: replace
+            path: "/spec/source/repoURL"
+            value: "http://jumphost.inbound.lab:3000/kni/faredge-ztp.git"
+          - op: remove
+            path: "/spec/syncPolicy"
+
+      # Configure policies Application
+      - target:
+          group: argoproj.io
+          version: v1alpha1
+          kind: Application
+          name: policies
+        patch: |-
+          - op: replace
+            path: "/spec/source/path"
+            value: "site-policies"
+          - op: replace
+            path: "/spec/source/repoURL"
+            value: "http://jumphost.inbound.lab:3000/kni/faredge-ztp.git"
+    
+    syncPolicy:
+      automated:
+        allowEmpty: true
+        prune: true
+        selfHeal: true
+      retry:
+        backoff:
+          duration: 5s
+          factor: 2
+          maxDuration: 10m 

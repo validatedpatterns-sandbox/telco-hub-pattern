@@ -1,0 +1,10 @@
+apiVersion: v2
+description: A Helm chart for telco hub ACM (Advanced Cluster Management) configuration using ArgoCD Application
+keywords:
+- pattern
+- telco
+- acm
+- cluster-management
+name: acm
+version: 0.0.1
+appVersion: "1.0" 

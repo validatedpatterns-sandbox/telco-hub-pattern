@@ -1,0 +1,10 @@
+apiVersion: v2
+description: A Helm chart for telco hub logging configuration using ArgoCD Application
+keywords:
+- pattern
+- telco
+- logging
+- observability
+name: logging
+version: 0.0.1
+appVersion: "1.0" 
