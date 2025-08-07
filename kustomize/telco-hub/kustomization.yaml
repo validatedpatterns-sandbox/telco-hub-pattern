@@ -1,0 +1,84 @@
+# =============================================================================
+# Telco Hub Pattern - Kustomization Configuration
+# =============================================================================
+# This kustomization applies the telco-reference configurations and patches
+# them to align with Validated Patterns' GitOps operator defaults.
+#
+# Resource Source:
+# - We consume telco-reference configurations from:
+#   https://github.com/openshift-kni/telco-reference/tree/main/telco-hub/configuration/reference-crs/required/gitops
+#
+# Patches Applied:
+# - The following patches ensure our GitOps operator configuration matches
+#   the standard configurations used by Validated Patterns, which are
+#   established by the clustergroup-chart:
+#   https://github.com/validatedpatterns/clustergroup-chart
+# =============================================================================
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - http://jumphost.inbound.vz.bos2.lab:3000/kni/telco-reference//telco-hub/configuration?ref=bos2-hub-overlays
+
+patches:
+  # Configure hub-config application to ignore common drift issues
+  # This prevents continuous re-syncs due to operator-managed resource changes
+  - target:
+      group: argoproj.io
+      version: v1alpha1
+      kind: Application
+      name: hub-config
+      namespace: openshift-gitops
+    patch: |-
+      - op: add
+        path: "/spec/ignoreDifferences"
+        value:
+          - group: "*"
+            kind: "*"
+            jsonPointers:
+            - /metadata/labels/app.kubernetes.io/managed-by
+            - /metadata/labels/argocd.argoproj.io/instance
+      - op: add
+        path: "/spec/syncPolicy/syncOptions"
+        value:
+        - RespectIgnoreDifferences=true
+
+  # Ensure the GitOps operator has the same Subscription as validated patterns
+  - target:
+      group: operators.coreos.com
+      version: v1alpha1
+      kind: Subscription
+      name: openshift-gitops-operator
+    patch: |-
+      - op: replace
+        path: "/metadata/namespace"
+        value: "openshift-operators"
+      - op: replace
+        path: "/spec/source"
+        value: "redhat-operators"
+      - op: add
+        path: "/spec/config"
+        value:
+          env:
+          - name: ARGOCD_CLUSTER_CONFIG_NAMESPACES
+            value: "*"
+
+  # Ensure the GitOps operator has the same OperatorGroup as validated patterns
+  - target:
+      group: operators.coreos.com
+      version: v1alpha1
+      kind: OperatorGroup
+      name: openshift-gitops-operator
+      namespace: openshift-gitops-operator
+    patch: |-
+      - op: replace
+        path: "/metadata/name"
+        value: "openshift-gitops-operator-group"
+      - op: replace
+        path: "/metadata/namespace"
+        value: "openshift-gitops"
+      - op: replace
+        path: "/spec/targetNamespaces"
+        value:
+          - "openshift-gitops"
