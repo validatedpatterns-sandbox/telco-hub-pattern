@@ -6,8 +6,9 @@ values-secret*
 .*.expected.yaml
 pattern-vault.init
 vault.init
-super-linter.log
+*.log
 common/pattern-vault.init
 
 # Folders
 .idea/
+.vscode/

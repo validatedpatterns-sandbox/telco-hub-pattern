@@ -1,0 +1,112 @@
+---
+# =============================================================================
+# Telco Hub Pattern - Kustomization Configuration
+# =============================================================================
+# This kustomization applies telco-reference configurations and customizes
+# them for your specific environment requirements.
+#
+# Base resources are consumed from:
+# https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs?ref=main
+# =============================================================================
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  # Required: Local Registry (sync-wave: "-10")
+  # Enable this telco-hub component if you are in a disconnected environment!
+  # - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/required/registry
+
+  # Required: Advanced Cluster Management (sync-wave: "4", "5", "6", "7", "8", "9", "10")
+  # To enable this telco-hub component, you NEED to configure an storage backend to the hub cluster first.
+  # - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/required/acm
+
+  # Required: GitOps Operator (sync-wave: "10")
+  # TODO: This telco-hub component is not yet supported by the pattern. Therefore, we are using the one provided
+  # by default in the Validated Patterns Operator.
+  # - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/required/gitops
+
+  # Required: Topology Aware Lifecycle Manager (sync-wave: "0")
+  - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/required/talm
+
+  # Workflow: GitOps ZTP Installation (sync-wave: "100")
+  # Enable this telco-hub component if you deploy clusters via GitOps ZTP!
+  # - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/required/gitops/ztp-installation
+
+  # Optional: Local Storage Operator (sync-waves: "-5", "-3")
+  # Enable this telco-hub component if you use LSO as you storage backend!
+  # - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/optional/lso
+
+  # Optional: Open Data Foundation (sync-waves: "-5", "-2", "5")
+  # Enable this telco-hub component if you use ODF as you storage backend!
+  # - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/optional/odf-internal
+
+  # Optional: Logging Operator (sync-waves: "1", "2", "3", "4", "8", "10")
+  # Enable this telco-hub component if you use the logging operator!
+  # - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/optional/logging
+
+
+# =============================================================================
+# CUSTOMIZATION OVERLAYS
+# =============================================================================
+# Use kustomize patches to customize the deployed resources for your environment.
+# These patches modify the base reference-crs to match your specific requirements.
+
+patches:
+
+  # ---------------------------------------------------------------------------
+  # Local Registry Configuration
+  # ---------------------------------------------------------------------------
+
+  # Sample patches for this telco-hub component can be found in the below link:
+  # - https://github.com/openshift-kni/telco-reference/tree/main/telco-hub/configuration/example-overlays-config/registry
+
+  # ---------------------------------------------------------------------------
+  # Advanced Cluster Management Configuration
+  # ---------------------------------------------------------------------------
+
+  # Sample patches for this telco-hub component can be found in the below link:
+  # - https://github.com/openshift-kni/telco-reference/tree/main/telco-hub/configuration/example-overlays-config/acm
+
+  # ---------------------------------------------------------------------------
+  # GitOps Operator Configuration
+  # ---------------------------------------------------------------------------
+
+  # Sample patches for this telco-hub component can be found in the below link:
+  # - https://github.com/openshift-kni/telco-reference/tree/main/telco-hub/configuration/example-overlays-config/gitops
+
+  # ---------------------------------------------------------------------------
+  # Topology Aware Lifecycle Manager
+  # ---------------------------------------------------------------------------
+
+  # Ensure the TALM operator uses Red Hat catalog
+  - target:
+      group: operators.coreos.com
+      version: v1alpha1
+      kind: Subscription
+      name: openshift-topology-aware-lifecycle-manager-subscription
+    patch: |-
+      - op: replace
+        path: "/spec/source"
+        value: "redhat-operators"
+
+  # ---------------------------------------------------------------------------
+  # Local Storage Operator Configuration
+  # ---------------------------------------------------------------------------
+
+  # Sample patches for this telco-hub component can be found in the below link:
+  # - https://github.com/openshift-kni/telco-reference/tree/main/telco-hub/configuration/example-overlays-config/lso
+
+  # ---------------------------------------------------------------------------
+  # Open Data Foundation Configuration
+  # ---------------------------------------------------------------------------
+
+  # Sample patches for this telco-hub component can be found in the below link:
+  # - https://github.com/openshift-kni/telco-reference/tree/main/telco-hub/configuration/example-overlays-config/odf
+
+  # ---------------------------------------------------------------------------
+  # Cluster Logging Configuration
+  # ---------------------------------------------------------------------------
+
+  # Sample patches for this telco-hub component can be found in the below link:
+  # - https://github.com/openshift-kni/telco-reference/tree/main/telco-hub/configuration/example-overlays-config/logging

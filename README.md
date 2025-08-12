@@ -12,28 +12,28 @@
 
 ---
 
-## 🎯 Overview
+## Overview
 
 The **Telco Hub Pattern** delivers a production-ready, GitOps-based solution for deploying and managing telecommunication hub infrastructure. Built on the [Red Hat Validated Patterns](https://validatedpatterns.io/) framework, this pattern provides a modular approach to telco hub deployment with component-based enablement.
 
 ### Key Features
 
-- **🎛️ Component-Based Architecture**: Individual Helm charts for each component with enable/disable controls
-- **🚀 GitOps-Native**: Fully automated deployment via ArgoCD with integrated patterns framework
-- **🔄 Lifecycle Management**: Integrated cluster management and upgrade capabilities via TALM
-- **📋 Kustomize Patches**: Runtime customization without modifying [reference-crs](https://github.com/openshift-kni/telco-reference/tree/main/telco-hub/configuration/reference-crs) configurations
-- **🔒 Zero Touch Provisioning**: Automated cluster installation and configuration workflows
-- **📊 Observability Ready**: Built-in monitoring and logging options
+- **Component-Based Architecture**: Individual Helm charts for each component with enable/disable controls
+- **GitOps-Native**: Fully automated deployment via ArgoCD with integrated patterns framework
+- **Lifecycle Management**: Integrated cluster management and upgrade capabilities via TALM
+- **Kustomize Patches**: Runtime customization without modifying [reference-crs](https://github.com/openshift-kni/telco-reference/tree/main/telco-hub/configuration/reference-crs) base configurations
+- **Zero Touch Provisioning**: Automated cluster installation and configuration workflows
+- **Observability Ready**: Built-in monitoring and logging options
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
-- ✅ **OpenShift 4.14+** cluster with cluster-admin privileges
-- ✅ **Git repository** access for telco-reference configurations
-- ✅ **oc CLI** tool configured and authenticated
+- **OpenShift 4.14+** cluster with cluster-admin privileges
+- **Git repository** access for telco-reference configurations
+- **oc CLI** tool configured and authenticated
 
 ### Deploy
 
@@ -42,8 +42,11 @@ The **Telco Hub Pattern** delivers a production-ready, GitOps-based solution for
 git clone https://github.com/validatedpatterns-sandbox/telco-hub-pattern.git
 cd telco-hub-pattern
 
+# Adjust kustomize overlay
+vim ./kustomize/overlays/telco-hub/kustomization.yaml
+
 # Deploy using the pattern framework
-./pattern.sh make install
+./pattern.sh make operator-deploy
 ```
 
 ### Verify
@@ -51,27 +54,25 @@ cd telco-hub-pattern
 ```bash
 # Check pattern deployment status
 ./pattern.sh make argo-healthcheck
-
-# Monitor ArgoCD applications
-oc get applications.argoproj.io -n openshift-gitops
 ```
 
-**🎉 Your Telco Hub is now deploying via GitOps!**
+**Your Telco Hub is now deploying via GitOps!**
 
 ---
 
-## 📦 Components
+## Components
 
-| Component            | Type     | Description                                              | Chart Path                                                                                                   |
-|----------------------|----------|----------------------------------------------------------|--------------------------------------------------------------------------------------------------------------|
-| **ACM**              | Required | Advanced Cluster Management for multi-cluster operations | [`charts/telco-hub/required/acm/README.md`](charts/telco-hub/required/acm/README.md)                         |
-| **GitOps**           | Required | ArgoCD operators and GitOps configuration                | [`charts/telco-hub/required/gitops/README.md`](charts/telco-hub/required/gitops/README.md)                   |
-| **TALM**             | Required | Topology Aware Lifecycle Manager for cluster updates     | [`charts/telco-hub/required/talm/README.md`](charts/telco-hub/required/talm/README.md)                       |
-| **ZTP Installation** | Workflow | Zero Touch Provisioning cluster installation workflow    | Enabled via [GitOps chart](charts/telco-hub/required/gitops/README.md)                                       |
-| **LSO**              | Optional | LocalStorage Operator for node-local storage             | [`charts/telco-hub/optional/lso/README.md`](charts/telco-hub/optional/lso/README.md)                         |
-| **ODF**              | Optional | OpenShift Data Foundation for persistent storage         | [`charts/telco-hub/optional/odf/README.md`](charts/telco-hub/optional/odf/README.md)                         |
-| **Backup Recovery**  | Optional | OADP for backup and disaster recovery                    | [`charts/telco-hub/optional/backup-recovery/README.md`](charts/telco-hub/optional/backup-recovery/README.md) |
-| **Logging**          | Optional | Cluster Logging Operator for log aggregation             | [`charts/telco-hub/optional/logging/README.md`](charts/telco-hub/optional/logging/README.md)                 |
+| Component            | Type     | Description                                              | Reference Configuration                                                                                                                                                     |
+|----------------------|----------|----------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **ACM**              | Required | Advanced Cluster Management for multi-cluster operations | [telco-reference/required/acm](https://github.com/openshift-kni/telco-reference/tree/main/telco-hub/configuration/reference-crs/required/acm)                              |
+| **GitOps**           | Required | ArgoCD operators and GitOps configuration                | [telco-reference/required/gitops](https://github.com/openshift-kni/telco-reference/tree/main/telco-hub/configuration/reference-crs/required/gitops)                        |
+| **TALM**             | Required | Topology Aware Lifecycle Manager for cluster updates     | [telco-reference/required/talm](https://github.com/openshift-kni/telco-reference/tree/main/telco-hub/configuration/reference-crs/required/talm)                            |
+| **ZTP Installation** | Workflow | Zero Touch Provisioning cluster installation workflow    | [telco-reference/required/gitops/ztp-installation](https://github.com/openshift-kni/telco-reference/tree/main/telco-hub/configuration/reference-crs/required/gitops/ztp-installation) |
+| **LSO**              | Optional | LocalStorage Operator for node-local storage             | [telco-reference/optional/lso](https://github.com/openshift-kni/telco-reference/tree/main/telco-hub/configuration/reference-crs/optional/lso)                              |
+| **ODF**              | Optional | OpenShift Data Foundation for persistent storage         | [telco-reference/optional/odf-internal](https://github.com/openshift-kni/telco-reference/tree/main/telco-hub/configuration/reference-crs/optional/odf-internal)            |
+| **Logging**          | Optional | Cluster Logging Operator for log aggregation             | [telco-reference/optional/logging](https://github.com/openshift-kni/telco-reference/tree/main/telco-hub/configuration/reference-crs/optional/logging)                      |
+
+> **Official Component Specifications**: For the complete list of supported and validated components with their official versions, see [Telco Hub Reference Design Specifications](https://docs.redhat.com/en/documentation/openshift_container_platform/latest/html/scalability_and_performance/telco-hub-ref-design-specs#telco-hub-software-stack_telco-hub) in the Red Hat OpenShift Container Platform documentation.
 
 ---
 
@@ -89,9 +90,9 @@ This pattern is designed specifically for telecommunication use cases and provid
 
 ---
 
-## 📚 Documentation
+## Documentation
 
-**📖 [Complete Getting Started Guide](docs/getting-started.md)** — Comprehensive setup, configuration, and operation guide
+**[Getting Started Guide](docs/getting-started.md)** — Comprehensive setup, configuration, and operation guide
 
 ### External Resources
 

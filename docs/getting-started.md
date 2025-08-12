@@ -29,12 +29,12 @@ The **Telco Hub Pattern** delivers a production-ready, GitOps-based solution for
 
 ### Key Features
 
-- **Component-Based Architecture**: Individual Helm charts for each component with enable/disable controls
+- **Kustomize-Based Architecture**: Direct consumption of [telco-reference](https://github.com/openshift-kni/telco-reference) base configurations with overlay customization
 - **GitOps-Native**: Fully automated deployment via ArgoCD with integrated patterns framework
 - **Lifecycle Management**: Integrated cluster management and upgrade capabilities via TALM
-- **Kustomize Patches**: Runtime customization without modifying [reference-crs](https://github.com/openshift-kni/telco-reference/tree/main/telco-hub/configuration/reference-crs) configurations
+- **Component Selection**: Enable/disable telco components via kustomize resource declarations
+- **Environment Customization**: Runtime patches without modifying upstream [reference-crs](https://github.com/openshift-kni/telco-reference/tree/main/telco-hub/configuration/reference-crs) base configurations
 - **Zero Touch Provisioning**: Automated cluster installation and configuration workflows
-- **Observability Ready**: Built-in monitoring and logging options
 
 ### Use Cases
 
@@ -48,8 +48,8 @@ The **Telco Hub Pattern** delivers a production-ready, GitOps-based solution for
 The goal for this pattern is to:
 
 - Use a GitOps approach to manage telco-hub configurations on OpenShift hub clusters
-- Provide component-based deployment with granular control over GitOps ZTP components
-- Demonstrate integration with telco-reference configurations via kustomize patches
+- Consume official telco-reference designs with environment-specific kustomize overlays
+- Provide component selection with granular control over telco-hub components
 - Support Zero Touch Provisioning workflows for automated cluster deployment
 - Deliver a foundation for building GitOps-based telco applications and network functions
 
@@ -63,30 +63,34 @@ This pattern is designed specifically for telecommunications use cases and provi
 
 ```bash
 telco-hub-pattern/
-├── charts/telco-hub/                    # 📦 Component Helm Charts
-│   ├── required/                        # 🔧 Essential Components
-│   │   ├── acm/                         # Advanced Cluster Management
-│   │   ├── gitops/                      # GitOps Operators & Configuration
-│   │   └── talm/                        # Topology Aware Lifecycle Manager
-│   └── optional/                        # 🔌 Optional Components
-│       ├── lso/                         # Local Storage Operator
-│       ├── odf/                         # OpenShift Data Foundation
-│       ├── backup-recovery/             # Backup & Recovery (OADP)
-│       └── logging/                     # Cluster Logging Stack
-├── overrides/values-telco-hub.yaml      # Component Configuration
+├── kustomize/overlays/telco-hub/        # 🔧 Kustomize Overlay Configuration
+│   └── kustomization.yaml              # Component selection and patches
 ├── values-hub.yaml                      # Hub Cluster Definition
 ├── values-global.yaml                   # Global Pattern Settings
+├── common/                              # 📦 Validated Patterns Framework
 └── docs/                                # Documentation
+
+# Consumed Remote Resources (via kustomize):
+# https://github.com/openshift-kni/telco-reference/tree/main/telco-hub/configuration/reference-crs/
+├── required/                            # 🔧 Essential Components
+│   ├── acm/                             # Advanced Cluster Management
+│   ├── gitops/                          # GitOps Operators & Configuration
+│   ├── talm/                            # Topology Aware Lifecycle Manager
+│   └── registry/                        # Local Registry (disconnected)
+└── optional/                            # 🔌 Optional Components
+    ├── lso/                             # Local Storage Operator
+    ├── odf-internal/                    # OpenShift Data Foundation
+    └── logging/                         # Cluster Logging Stack
 ```
 
 ### Design Principles
 
 | Principle                 | Description                                                            | Benefit                                               |
 |---------------------------|------------------------------------------------------------------------|-------------------------------------------------------|
-| **Component-Based**       | Individual Helm charts for each component with dedicated configuration | Granular control and independent lifecycle management |
+| **Reference-Based**       | Direct consumption of official telco-reference configurations          | Always use validated, upstream telco designs         |
 | **GitOps-Native**         | ArgoCD manages all deployments via validated patterns framework        | Automated, auditable infrastructure changes           |
-| **Kustomize Integration** | Runtime patches for environment-specific customization                 | Customize without modifying base configurations       |
-| **Validation-First**      | Built on Red Hat Validated Patterns framework                          | Production-tested, enterprise-ready telco patterns    |
+| **Kustomize-First**       | Environment-specific overlays without modifying upstream configs       | Customize while maintaining upstream compatibility    |
+| **Component Selection**   | Declarative component enablement via kustomize resources               | Granular control over telco-hub functionality        |
 
 ---
 
@@ -131,51 +135,54 @@ git clone https://github.com/validatedpatterns-sandbox/telco-hub-pattern.git
 cd telco-hub-pattern
 ```
 
-### 2. Update Configuration
+### 2. Configure Components
 
-Edit `overrides/values-telco-hub.yaml` with your environment-specific settings:
+Edit `kustomize/overlays/telco-hub/kustomization.yaml` to enable required components:
 
 ```yaml
-telcoHub:
-  # -----------------------------------------------------------------------------
-  # IMPORTANT: Only update these if your environment is disconnected!
-  # -----------------------------------------------------------------------------
-  git:
-    repoURL: https://github.com/openshift-kni/telco-reference.git
-    targetRevision: main
+# =============================================================================
+# Telco Hub Pattern - Kustomization Configuration
+# =============================================================================
 
-  # -----------------------------------------------------------------------------
-  # Component Selection
-  # -----------------------------------------------------------------------------
-  components:
-    # Required Components (recommended for telco-hub functionality)
-    acm:             
-      enabled: true                   # Advanced Cluster Management
-    gitops:          
-      enabled: true                   # GitOps operators and configuration
-    talm:            
-      enabled: true                   # Topology Aware Lifecycle Manager
-    
-    # ZTP Workflow (enable for cluster installation management)
-    ztpInstallation: 
-      enabled: false                  # Zero Touch Provisioning workflow
-    
-    # Optional Components (enable as needed)
-    lso:             
-      enabled: false                  # Local Storage Operator
-    odf:             
-      enabled: false                  # OpenShift Data Foundation
-    backupRecovery:  
-      enabled: false                  # Backup and Recovery
-    logging:         
-      enabled: false                  # Cluster Logging
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  # Required: Advanced Cluster Management (uncomment to enable)
+  # - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/required/acm
+
+  # Required: Topology Aware Lifecycle Manager (enabled by default)
+  - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/required/talm
+
+  # Workflow: GitOps ZTP Installation (uncomment if deploying clusters via ZTP)
+  # - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/required/gitops/ztp-installation
+
+  # Optional Components (uncomment as needed):
+  # - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/optional/lso
+  # - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/optional/odf-internal  
+  # - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/optional/logging
+
+  # Disconnected: Local Registry (uncomment for disconnected environments)
+  # - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/required/registry
+
+# Environment-specific patches (example for disconnected environments)
+patches:
+  - target:
+      group: operators.coreos.com
+      version: v1alpha1
+      kind: Subscription
+      name: openshift-topology-aware-lifecycle-manager-subscription
+    patch: |-
+      - op: replace
+        path: "/spec/source"
+        value: "redhat-operators"  # or "redhat-operators-disconnected"
 ```
 
 ### 3. Deploy the Pattern
 
 ```bash
 # Deploy using the pattern framework
-./pattern.sh make install
+./pattern.sh make operator-deploy
 ```
 
 ### 4. Verify Deployment
@@ -183,9 +190,6 @@ telcoHub:
 ```bash
 # Check pattern deployment status
 ./pattern.sh make argo-healthcheck
-
-# Monitor ArgoCD applications
-oc get applications.argoproj.io -n openshift-gitops
 ```
 
 **🎉 Your Telco Hub is now deploying via GitOps!**
@@ -196,30 +200,29 @@ oc get applications.argoproj.io -n openshift-gitops
 
 ### Configuration Hierarchy
 
-The pattern uses a three-tier configuration system:
+The pattern uses a streamlined configuration system:
 
-| File                              | Purpose                         | When to Use                                  |
-|-----------------------------------|---------------------------------|----------------------------------------------|
-| `values-global.yaml`              | 🌍 Global pattern settings      | Cross-environment pattern configuration      |
-| `values-hub.yaml`                 | 🏭 Telco Hub cluster definition | Telco Hub cluster structure and applications |
-| `overrides/values-telco-hub.yaml` | 🎛️ Component configuration     | Component enablement and customization       |
+| File                                              | Purpose                         | When to Use                                  |
+|---------------------------------------------------|---------------------------------|----------------------------------------------|
+| `values-global.yaml`                              | 🌍 Global pattern settings      | Cross-environment pattern configuration      |
+| `values-hub.yaml`                                 | 🏭 Hub cluster definition       | ArgoCD application and cluster configuration |
+| `kustomize/overlays/telco-hub/kustomization.yaml` | 🎛️ Component selection & patches | Component enablement and environment customization |
 
-### Component Configuration
+### Component Selection
 
-Components are organized into logical categories:
+Components are enabled by uncommenting resource declarations in the kustomization file:
 
 #### Required Components
 
 Essential for telco hub functionality:
 
 ```yaml
-components:
-  acm:
-    enabled: true                     # Advanced Cluster Management
-  gitops:
-    enabled: true                     # GitOps Infrastructure (ArgoCD, operators)
-  talm:
-    enabled: true                     # Topology Aware Lifecycle Manager
+resources:
+  # Advanced Cluster Management (uncomment to enable)
+  - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/required/acm
+  
+  # Topology Aware Lifecycle Manager (enabled by default)
+  - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/required/talm
 ```
 
 #### ZTP Workflow
@@ -227,9 +230,9 @@ components:
 For automated cluster deployment:
 
 ```yaml
-components:
-  ztpInstallation:
-    enabled: true                     # ZTP cluster installation workflow
+resources:
+  # GitOps ZTP Installation (uncomment to enable)
+  - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/required/gitops/ztp-installation
 ```
 
 #### Optional Components
@@ -237,37 +240,47 @@ components:
 Enable based on requirements:
 
 ```yaml
-components:
-  lso:
-    enabled: false                    # Local Storage Operator
-  odf:
-    enabled: false                    # OpenShift Data Foundation
-  backupRecovery:
-    enabled: false                    # BBackup and Recovery (Velero/OADP)
-  logging:
-    enabled: false                    # Cluster Logging Operator
+resources:
+  # Local Storage Operator
+  - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/optional/lso
+  
+  # OpenShift Data Foundation  
+  - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/optional/odf-internal
+  
+  # Cluster Logging
+  - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/optional/logging
 ```
 
-### Kustomize Patches
+### Environment Customization
 
-Apply environment-specific customizations:
+Apply environment-specific patches without modifying upstream configurations:
 
 ```yaml
-telcoHub:
-  talm:
-    kustomizePatches:
-      - target:
-          group: operators.coreos.com
-          version: v1alpha1
-          kind: Subscription
-          name: openshift-topology-aware-lifecycle-manager-subscription
-        patch: |-
-          - op: replace
-            path: "/spec/source"
-            value: "redhat-operators-disconnected"
+patches:
+  # Example: Configure TALM operator for disconnected environments
+  - target:
+      group: operators.coreos.com
+      version: v1alpha1
+      kind: Subscription
+      name: openshift-topology-aware-lifecycle-manager-subscription
+    patch: |-
+      - op: replace
+        path: "/spec/source"
+        value: "redhat-operators-disconnected"
+  
+  # Example: Customize storage classes for ODF
+  - target:
+      group: ocs.openshift.io
+      version: v1
+      kind: StorageCluster
+      name: ocs-storagecluster
+    patch: |-
+      - op: replace
+        path: "/spec/storageDeviceSets/0/dataPVCTemplate/spec/storageClassName"
+        value: "localblock"
 ```
 
-> **NOTE:** Above configuration can be used to deploy the TALM Operator in disconnected environments.
+> **📘 REFERENCE:** For complete patch examples, see the [telco-reference example overlays](https://github.com/openshift-kni/telco-reference/tree/main/telco-hub/configuration/example-overlays-config) for each component.
 
 ---
 
@@ -275,33 +288,37 @@ telcoHub:
 
 ### Component Reference
 
-| Component            | Type     | Description                                              | Chart Path                                                                                    |
-|----------------------|----------|----------------------------------------------------------|-----------------------------------------------------------------------------------------------|
-| **ACM**              | Required | Advanced Cluster Management for multi-cluster operations | [`charts/telco-hub/required/acm/`](../charts/telco-hub/required/acm/)                         |
-| **GitOps**           | Required | ArgoCD operators and GitOps configuration                | [`charts/telco-hub/required/gitops/`](../charts/telco-hub/required/gitops/)                   |
-| **TALM**             | Required | Topology Aware Lifecycle Manager for cluster updates     | [`charts/telco-hub/required/talm/`](../charts/telco-hub/required/talm/)                       |
-| **ZTP Installation** | Workflow | Zero Touch Provisioning cluster installation workflow    | Enabled via [GitOps chart](../charts/telco-hub/required/gitops/)                              |
-| **LSO**              | Optional | LocalStorage Operator for node-local storage             | [`charts/telco-hub/optional/lso/`](../charts/telco-hub/optional/lso/)                         |
-| **ODF**              | Optional | OpenShift Data Foundation for persistent storage         | [`charts/telco-hub/optional/odf/`](../charts/telco-hub/optional/odf/)                         |
-| **Backup Recovery**  | Optional | OADP for backup and disaster recovery                    | [`charts/telco-hub/optional/backup-recovery/`](../charts/telco-hub/optional/backup-recovery/) |
-| **Logging**          | Optional | Cluster Logging Operator for log aggregation             | [`charts/telco-hub/optional/logging/`](../charts/telco-hub/optional/logging/)                 |
+| Component            | Type     | Description                                              | Reference Configuration                                                                                                                                                     |
+|----------------------|----------|----------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Registry**         | Required | Local Registry for disconnected environments             | [telco-reference/required/registry](https://github.com/openshift-kni/telco-reference/tree/main/telco-hub/configuration/reference-crs/required/registry)                  |
+| **ACM**              | Required | Advanced Cluster Management for multi-cluster operations | [telco-reference/required/acm](https://github.com/openshift-kni/telco-reference/tree/main/telco-hub/configuration/reference-crs/required/acm)                              |
+| **GitOps**           | Required | ArgoCD operators and GitOps configuration                | [telco-reference/required/gitops](https://github.com/openshift-kni/telco-reference/tree/main/telco-hub/configuration/reference-crs/required/gitops)                        |
+| **TALM**             | Required | Topology Aware Lifecycle Manager for cluster updates     | [telco-reference/required/talm](https://github.com/openshift-kni/telco-reference/tree/main/telco-hub/configuration/reference-crs/required/talm)                            |
+| **ZTP Installation** | Workflow | Zero Touch Provisioning cluster installation workflow    | [telco-reference/required/gitops/ztp-installation](https://github.com/openshift-kni/telco-reference/tree/main/telco-hub/configuration/reference-crs/required/gitops/ztp-installation) |
+| **LSO**              | Optional | LocalStorage Operator for node-local storage             | [telco-reference/optional/lso](https://github.com/openshift-kni/telco-reference/tree/main/telco-hub/configuration/reference-crs/optional/lso)                              |
+| **ODF**              | Optional | OpenShift Data Foundation for persistent storage         | [telco-reference/optional/odf-internal](https://github.com/openshift-kni/telco-reference/tree/main/telco-hub/configuration/reference-crs/optional/odf-internal)            |
+| **Logging**          | Optional | Cluster Logging Operator for log aggregation             | [telco-reference/optional/logging](https://github.com/openshift-kni/telco-reference/tree/main/telco-hub/configuration/reference-crs/optional/logging)                      |
 
 ### Component Dependencies
 
 ```mermaid
 graph TD
-    A[GitOps] --> B[ArgoCD Applications]
-    B --> C[ACM]
-    B --> D[TALM]
-    B --> E[ZTP Installation]
-    C --> F[Managed Clusters]
-    E --> F
-    D --> G[Cluster Upgrades]
+    A[Kustomize Overlay] --> B[Telco-Reference CRs]
+    B --> C[Registry]
+    B --> D[ACM]
+    B --> E[TALM]
+    B --> F[ZTP Installation]
+    D --> G[Managed Clusters]
+    F --> G
+    E --> H[Cluster Upgrades]
     
-    H[Optional Components] --> I[LSO]
-    H --> J[ODF]
-    H --> L[Backup Recovery]
-    H --> M[Logging]
+    I[Optional Components] --> J[LSO]
+    I --> K[ODF]
+    I --> L[Logging]
+    
+    style A fill:#e1f5fe
+    style B fill:#f3e5f5
+    style I fill:#fff3e0
 ```
 
 ---
@@ -355,18 +372,31 @@ Test and Linters Tasks
 #### Enabling Components
 
 ```bash
-# Edit configuration to enable components
-vi overrides/values-telco-hub.yaml
+# Edit kustomization to enable components
+vi kustomize/overlays/telco-hub/kustomization.yaml
+
+# Uncomment desired component resources, for example:
+# - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/required/acm
 
 # Apply changes
 ./pattern.sh make operator-upgrade
 ```
 
-#### Updating Git Configuration
+#### Updating Environment Patches
 
 ```bash
-# Update Git repository settings
-vi overrides/values-telco-hub.yaml
+# Update kustomize patches for your environment
+vi kustomize/overlays/telco-hub/kustomization.yaml
+
+# Add or modify patches section, for example:
+# patches:
+#   - target:
+#       kind: Subscription
+#       name: my-operator-subscription
+#     patch: |-
+#       - op: replace
+#         path: "/spec/source"
+#         value: "my-catalog-source"
 
 # Apply configuration changes
 ./pattern.sh make operator-upgrade
@@ -378,8 +408,11 @@ vi overrides/values-telco-hub.yaml
 # Watch ArgoCD applications
 watch oc get applications.argoproj.io -n openshift-gitops
 
-# Check individual application status
-oc describe applications.argoproj.io talm -n openshift-gitops
+# Check telco-hub application status
+oc describe applications.argoproj.io telco-hub -n telco-hub-pattern-hub
+
+# View kustomize-generated resources
+oc get all -l app.kubernetes.io/managed-by=ArgoCD
 ```
 
 ### Access ArgoCD UI
@@ -389,8 +422,10 @@ oc describe applications.argoproj.io talm -n openshift-gitops
 echo "ArgoCD UI: https://$(oc get route openshift-gitops-server -n openshift-gitops -o jsonpath='{.spec.host}')"
 
 # Get admin password
-oc extract secret/openshift-gitops-cluster -n openshift-gitops --to=-
+oc extract secret/openshift-gitops-cluster -n telco-hub-pattern-hub --to=-
 ```
+
+> **NOTE:** To access ArgoCD UI you can also use the nine box available in the Red Hat OpenShift Console.
 
 ---
 
@@ -404,24 +439,24 @@ oc extract secret/openshift-gitops-cluster -n openshift-gitops --to=-
 
 ```bash
 # Check application status
-oc get applications.argoproj.io -n openshift-gitops -o wide
+oc get applications.argoproj.io -n telco-hub-pattern-hub -o wide
 
 # View detailed status
-oc describe applications.argoproj.io <app-name> -n openshift-gitops
+oc describe applications.argoproj.io <app-name> -n telco-hub-pattern-hub
 ```
 
 **Solution**: Verify component configuration and kustomize patches
 
 #### 2. Git Repository Access
 
-**Problem**: ArgoCD cannot access Git repositories
+**Problem**: ArgoCD cannot access telco-reference repository
 
 ```bash
-# Check repository configuration
-grep -r repoURL overrides/values-telco-hub.yaml
+# Check kustomize resource URLs
+grep -r "github.com/openshift-kni/telco-reference" kustomize/overlays/telco-hub/kustomization.yaml
 ```
 
-**Solution**: Verify repository URLs and configure Git credentials if needed
+**Solution**: Verify telco-reference repository URLs are accessible and network connectivity is available
 
 #### 3. Component Dependencies
 
@@ -432,7 +467,7 @@ grep -r repoURL overrides/values-telco-hub.yaml
 oc get csv -A | grep -E "(acm|gitops|talm)"
 ```
 
-**Solution**: Ensure required operators are installed and components are properly enabled
+**Solution**: Ensure required operators are installed and components are properly uncommented in kustomization.yaml
 
 ### Support Resources
 
@@ -453,12 +488,13 @@ oc get csv -A | grep -E "(acm|gitops|talm)"
 
 ### Component Documentation
 
-Each component includes comprehensive documentation:
+Official component documentation is available in the telco-reference repository:
 
-- [ACM Configuration](../charts/telco-hub/required/acm/README.md)
-- [GitOps Setup](../charts/telco-hub/required/gitops/README.md)  
-- [TALM Management](../charts/telco-hub/required/talm/README.md)
-- [Optional Components](../charts/telco-hub/optional/)
+- [ACM Configuration](https://github.com/openshift-kni/telco-reference/tree/main/telco-hub/configuration/reference-crs/required/acm)
+- [GitOps Setup](https://github.com/openshift-kni/telco-reference/tree/main/telco-hub/configuration/reference-crs/required/gitops)  
+- [TALM Management](https://github.com/openshift-kni/telco-reference/tree/main/telco-hub/configuration/reference-crs/required/talm)
+- [Optional Components](https://github.com/openshift-kni/telco-reference/tree/main/telco-hub/configuration/reference-crs/optional)
+- [Example Overlays](https://github.com/openshift-kni/telco-reference/tree/main/telco-hub/configuration/example-overlays-config)
 
 ### External Resources
 
