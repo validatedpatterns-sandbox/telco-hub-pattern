@@ -245,6 +245,7 @@ qe-tests: ## Runs the tests that QE runs
 super-linter: ## Runs super linter locally
 	rm -rf .mypy_cache
 	podman run -e RUN_LOCAL=true -e USE_FIND_ALGORITHM=true	\
+					-e FILTER_REGEX_EXCLUDE='.*\.vscode/.*' \
 					-e VALIDATE_ANSIBLE=false \
 					-e VALIDATE_BASH=false \
 					-e VALIDATE_CHECKOV=false \
@@ -252,16 +253,14 @@ super-linter: ## Runs super linter locally
 					-e VALIDATE_JSCPD=false \
 					-e VALIDATE_JSON_PRETTIER=false \
 					-e VALIDATE_MARKDOWN_PRETTIER=false \
-					-e VALIDATE_KUBERNETES_KUBECONFORM=false \
 					-e VALIDATE_PYTHON_PYLINT=false \
 					-e VALIDATE_SHELL_SHFMT=false \
-					-e VALIDATE_TEKTON=false \
 					-e VALIDATE_YAML=false \
 					-e VALIDATE_YAML_PRETTIER=false \
 					$(DISABLE_LINTERS) \
 					-v $(PWD):/tmp/lint:rw,z \
 					-w /tmp/lint \
-					ghcr.io/super-linter/super-linter:slim-v7
+					ghcr.io/super-linter/super-linter:slim-v8
 
 .PHONY: deploy upgrade legacy-deploy legacy-upgrade
 deploy upgrade legacy-deploy legacy-upgrade:
