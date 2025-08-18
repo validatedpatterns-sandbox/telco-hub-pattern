@@ -95,7 +95,7 @@
   1. ~/values-secret-<patternname>.yaml
   2. ~/values-secret.yaml
   3. <patterngitrepo>/values-secret.yaml.template
-* Add support for ansible vault encrypted values-secret files. You can now encrypt your values-secret file
+* Add support for Ansible vault encrypted values-secret files. You can now encrypt your values-secret file
   at rest with `ansible-vault encrypt ~/values-secret.yaml`. When running `make load-secrets` if an encrypted
   file is encountered the user will be prompted automatically for the password to decrypt it.
 
@@ -125,7 +125,7 @@
 
 * Extended the values-secret.yaml file to support multiple vault paths and re-wrote
   the push_secrets feature as python module plugin. This requires the following line
-  in a pattern's ansible.cfg's '[defaults]' stanza:
+  in a pattern's Ansible.cfg's '[defaults]' stanza:
 
   `library=~/.ansible/plugins/modules:./ansible/plugins/modules:./common/ansible/plugins/modules:/usr/share/ansible/plugins/modules`
 
