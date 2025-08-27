@@ -5,10 +5,14 @@ on: [push, pull_request]
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
       # Important: This sets up your GITHUB_WORKSPACE environment variable
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@5126516654c75f76bca1de45dd82a3006d8890f9 # v5
+        with:
+          persist-credentials: false
 
       - name: Lint Ansible Playbook
         uses: ansible/ansible-lint@1080d91d521d909ad79b868131e7ed7c6c708c77
