@@ -22,7 +22,7 @@ The helm charts now live in separate repositories under the VP
 The Ansible bits live in this [repository](https://github.com/validatedpatterns/rhvp.cluster_utils)
 
 In order to be able to use this "slimmed-down" main branch of common you *must*
-use a 0.9.* clustergroup-chart that. Add the following to your `values-global.yaml`:
+use a 0.9.\* clustergroup-chart that. Add the following to your `values-global.yaml`:
 
 ```yaml
 main:
@@ -48,4 +48,4 @@ git merge -s subtree -Xtheirs -Xsubtree=common common-upstream/main
 
 ## Secrets
 
-There are two different secret formats parsed by the Ansible bits. Both are documented [in the vault_utils readme](https://github.com/validatedpatterns/common/tree/main/ansible/roles/vault_utils/README.md)
+There are two different secret formats parsed by the Ansible bits. Both are documented [in the vault role](https://github.com/validatedpatterns/rhvp.cluster_utils/blob/main/roles/vault_utils/README.md)
