@@ -13,35 +13,37 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
-  # Required: Local Registry (sync-wave: "-10")
+  # Required: Local Registry
   # Enable this telco-hub component if you are in a disconnected environment!
   # - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/required/registry
 
-  # Required: Advanced Cluster Management (sync-wave: "4", "5", "6", "7", "8", "9", "10")
+  # Required: Advanced Cluster Management (ACM)
   # To enable this telco-hub component, you NEED to configure an storage backend to the hub cluster first.
   # - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/required/acm
 
-  # Required: GitOps Operator (sync-wave: "10")
+  # Required: GitOps Operator
   # TODO: This telco-hub component is not yet supported by the pattern. Therefore, we are using the one provided
   # by default in the Validated Patterns Operator.
   # - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/required/gitops
 
-  # Required: Topology Aware Lifecycle Manager (sync-wave: "0")
+  # Required: Topology Aware Lifecycle Manager (TALM)
   - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/required/talm
 
-  # Workflow: GitOps ZTP Installation (sync-wave: "100")
+  # Workflow: GitOps ZTP Installation
   # Enable this telco-hub component if you deploy clusters via GitOps ZTP!
   # - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/required/gitops/ztp-installation
 
-  # Optional: Local Storage Operator (sync-waves: "-5", "-3")
+  # Optional: Local Storage Operator (LSO)
   # Enable this telco-hub component if you use LSO as you storage backend!
   # - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/optional/lso
 
-  # Optional: Open Data Foundation (sync-waves: "-5", "-2", "5")
+  # Optional: Open Data Foundation (ODF)
   # Enable this telco-hub component if you use ODF as you storage backend!
   # - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/optional/odf-internal
+  # TODO: ODF requires a NS defined in GitOps component (commented out for now).
+  - policies/addPluginsPolicy.yaml
 
-  # Optional: Logging Operator (sync-waves: "1", "2", "3", "4", "8", "10")
+  # Optional: Logging Operator
   # Enable this telco-hub component if you use the logging operator!
   # - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/optional/logging
 

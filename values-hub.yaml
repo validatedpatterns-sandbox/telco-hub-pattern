@@ -37,3 +37,9 @@ clusterGroup:
       syncPolicy:
         automated:
           prune: true                          # Remove resources not in Git
+        retry:
+          limit: 6                             # Maximum number of sync retries (adjusted for ~20m total)
+          backoff:
+            duration: 15s                      # Initial retry delay
+            factor: 2                          # Backoff multiplier
+            maxDuration: 15m                   # Maximum retry delay (increased to 15m)
