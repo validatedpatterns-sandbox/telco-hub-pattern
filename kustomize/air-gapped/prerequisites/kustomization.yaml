@@ -1,0 +1,45 @@
+---
+# =============================================================================
+# Telco Hub Pattern - Disconnected Environment Prerequisites
+# =============================================================================
+# REQUIRED: Apply as Day-0 prerequisite before `pattern.sh make install`.
+#
+# Catalogs:
+# - redhat-operators-disconnected: Required for GitOps and Telco Hub operators
+# - community-operators-disconnected: Required for Validated Patterns operator
+#
+# Usage:
+# 1. oc apply -k kustomize/air-gapped/prerequisites/
+# 2. Deploy telco-hub pattern via `pattern.sh make install`
+# =============================================================================
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - operator-hub.yaml
+  - redhat-operators-disconnected.yaml
+  - community-operators-disconnected.yaml
+
+patches:
+  # Pin RedHat operators catalog to index mirrored in local registry
+  - target:
+      group: operators.coreos.com
+      version: v1alpha1
+      kind: CatalogSource
+      name: redhat-operators-disconnected
+    patch: |-
+      - op: replace
+        path: /spec/image
+        value: registry.redhat.io/redhat/redhat-operator-index:v4.19
+
+  # Pin Community operators catalog to index mirrored in local registry
+  - target:
+      group: operators.coreos.com
+      version: v1alpha1
+      kind: CatalogSource
+      name: community-operators-disconnected
+    patch: |-
+      - op: replace
+        path: /spec/image
+        value: registry.redhat.io/redhat/community-operator-index:v4.19

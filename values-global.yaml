@@ -32,5 +32,9 @@ main:
     enabled: true                                   # Enable multi-source configuration for complex charts
     clusterGroupChartVersion: "0.9.*"               # Version constraint for clusterGroup charts
 
+  patternsOperator:
+    source: community-operators-disconnected        # (disconnected configurations)
+
   gitops:
     channel: "gitops-1.16"                          # OpenShift GitOps operator channel version
+    operatorSource: redhat-operators-disconnected   # (disconnected configurations)
