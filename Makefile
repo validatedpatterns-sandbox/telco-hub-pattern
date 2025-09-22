@@ -1,12 +1,7 @@
 .PHONY: default
 default: help
 
-.PHONY: help
-##@ Pattern tasks
-
-# No need to add a comment here as help is described in common/
-help:
-	@make -f common/Makefile MAKEFILE_LIST="Makefile common/Makefile" help
+# help target is now provided by Makefile-common
 
 %:
 	make -f common/Makefile $*
@@ -23,3 +18,5 @@ post-install: ## Post-install tasks
 .PHONY: test
 test:
 	@make -f common/Makefile PATTERN_OPTS="-f values-global.yaml -f values-hub.yaml" test
+
+include Makefile-common
