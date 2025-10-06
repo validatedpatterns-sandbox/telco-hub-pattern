@@ -15,7 +15,7 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@5126516654c75f76bca1de45dd82a3006d8890f9 # v5
+        uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493 # v5
         with:
           persist-credentials: false
 
