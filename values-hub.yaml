@@ -28,7 +28,7 @@ clusterGroup:
   applications:
 
     telco-hub:
-      name: telco-hub
+      name: hub-config
       project: default                         # ArgoCD project for RBAC and policies
       kustomize: true                          # Use Kustomize for manifest processing
       path: kustomize/overlays/telco-hub

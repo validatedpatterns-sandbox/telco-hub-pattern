@@ -18,13 +18,19 @@ resources:
   # - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/required/registry
 
   # Required: Advanced Cluster Management (ACM)
-  # To enable this telco-hub component, you NEED to configure an storage backend to the hub cluster first.
+  # The ACM telco-hub component requires a storage backend to support its observability functionality.
+  # You NEED to configure a storage backend for the hub cluster along with ACM.
   # - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/required/acm
 
   # Required: GitOps Operator
-  # TODO: This telco-hub component is not yet supported by the pattern. Therefore, we are using the one provided
-  # by default in the Validated Patterns Operator.
+  # The telco-hub component creates the GitOps/ArgoCD instance used to manage spoke clusters. This instance
+  # includes resource tuning for scalability and an ACM plugin for simplified creation of policies. The validated
+  # pattern clustergroup chart does not make these tunings availabile, so a dedicated instances is created through
+  # the prerequisites content. This dedicated instance has all the necessary tuning already included so the
+  # `reference-crs/required/gitops` component does not need to be included. These prerequisites must be included
+  # prior to the other components.
   # - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/required/gitops
+  - prerequisites/
 
   # Required: Topology Aware Lifecycle Manager (TALM)
   - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/required/talm
@@ -40,8 +46,6 @@ resources:
   # Optional: Open Data Foundation (ODF)
   # Enable this telco-hub component if you use ODF as you storage backend!
   # - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/optional/odf-internal
-  # TODO: ODF requires a NS defined in GitOps component (commented out for now).
-  - policies/addPluginsPolicy.yaml
 
   # Optional: Logging Operator
   # Enable this telco-hub component if you use the logging operator!
@@ -112,3 +116,101 @@ patches:
 
   # Sample patches for this telco-hub component can be found in the below link:
   # - https://github.com/openshift-kni/telco-reference/tree/main/telco-hub/configuration/example-overlays-config/logging
+
+  # ---------------------------------------------------------------------------
+  # GitOps ZTP Configuration
+  # ---------------------------------------------------------------------------
+
+  # Policy AppProject configuration
+  - target:
+      group: argoproj.io
+      version: v1alpha1
+      kind: AppProject
+      name: policy-app-project
+    patch: |-
+      - op: replace
+        path: "/metadata/namespace"
+        value: "telco-hub-pattern"
+
+  # ZTP AppProject configuration
+  - target:
+      group: argoproj.io
+      version: v1alpha1
+      kind: AppProject
+      name: ztp-app-project
+    patch: |-
+      - op: replace
+        path: "/metadata/namespace"
+        value: "telco-hub-pattern"
+
+  # Clusters Application configuration
+  - target:
+      group: argoproj.io
+      version: v1alpha1
+      kind: Application
+      name: clusters
+    patch: |-
+      - op: replace
+        path: "/metadata/namespace"
+        value: "telco-hub-pattern"
+    #  - op: replace
+    #    path: "/spec/source/path"
+    #    value: "clusters"
+    #  - op: replace
+    #    path: "/spec/source/repoURL"
+    #    value: "http://jumphost.inbound.lab:3000/kni/faredge-ztp.git"
+    #  - op: replace
+    #    path: "/spec/source/targetRevision"
+    #    value: "hub2-branch"
+    #  - op: add
+    #    path: "/spec/syncPolicy"
+    #    value:
+    #      automated: {}
+
+  # ClusterRoleBinding for gitops-cluster
+  - target:
+      group: rbac.authorization.k8s.io
+      version: v1
+      kind: ClusterRoleBinding
+      name: gitops-cluster
+    patch: |-
+      - op: replace
+        path: "/subjects/0/name"
+        value: "telco-hub-gitops-argocd-application-controller"
+      - op: replace
+        path: "/subjects/0/namespace"
+        value: "telco-hub-pattern"
+
+  # Policies Application configuration
+  - target:
+      group: argoproj.io
+      version: v1alpha1
+      kind: Application
+      name: policies
+    patch: |-
+      - op: replace
+        path: "/metadata/namespace"
+        value: "telco-hub-pattern"
+    #  - op: replace
+    #    path: "/spec/source/path"
+    #    value: "site-policies"
+    #  - op: replace
+    #    path: "/spec/source/repoURL"
+    #    value: "http://jumphost.inbound.lab:3000/kni/faredge-ztp.git"
+    #  - op: replace
+    #    path: "/spec/source/targetRevision"
+    #    value: "hub2-branch"
+
+  # ClusterRoleBinding for gitops-policy
+  - target:
+      group: rbac.authorization.k8s.io
+      version: v1
+      kind: ClusterRoleBinding
+      name: gitops-policy
+    patch: |-
+      - op: replace
+        path: "/subjects/0/name"
+        value: "telco-hub-gitops-argocd-application-controller"
+      - op: replace
+        path: "/subjects/0/namespace"
+        value: "telco-hub-pattern"
