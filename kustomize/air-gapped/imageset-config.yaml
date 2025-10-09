@@ -16,14 +16,14 @@ mirror:
       packages:
         - name: advanced-cluster-management
           channels:
-            - name: release-2.13
+            - name: release-2.14
         - name: multicluster-engine
           channels:
-            - name: stable-2.8
+            - name: stable-2.9
         - name: openshift-gitops-operator
           channels:
             - name: latest
-            - name: gitops-1.16
+            - name: gitops-1.17
         - name: redhat-oadp-operator
           channels:
             - name: stable
@@ -35,43 +35,43 @@ mirror:
             - name: stable
         - name: odf-operator
           channels:
-            - name: stable-4.18
+            - name: stable-4.19
         - name: odf-dependencies
           channels:
-            - name: stable-4.18
+            - name: stable-4.19
         - name: odf-csi-addons-operator
           channels:
-            - name: stable-4.18
+            - name: stable-4.19
         - name: ocs-client-operator
           channels:
-            - name: stable-4.18
+            - name: stable-4.19
         - name: cephcsi-operator
           channels:
-            - name: stable-4.18
+            - name: stable-4.19
         - name: odf-prometheus-operator
           channels:
-            - name: stable-4.18
+            - name: stable-4.19
         - name: odf-multicluster-orchestrator
           channels:
-            - name: stable-4.18
+            - name: stable-4.19
         - name: ocs-operator
           channels:
-            - name: stable-4.18
+            - name: stable-4.19
         - name: rook-ceph-operator
           channels:
-            - name: stable-4.18
+            - name: stable-4.19
         - name: mcg-operator
           channels:
-            - name: stable-4.18
+            - name: stable-4.19
         - name: odr-hub-operator
           channels:
-            - name: stable-4.18
+            - name: stable-4.19
         - name: odr-cluster-operator
           channels:
-            - name: stable-4.18
+            - name: stable-4.19
         - name: recipe
           channels:
-            - name: stable-4.18
+            - name: stable-4.19
   additionalImages:
     - name: registry.redhat.io/ubi8/ubi:latest
     - name: registry.redhat.io/openshift4/ztp-site-generate-rhel8:v4.19
