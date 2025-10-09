@@ -18,7 +18,7 @@ The **Telco Hub Pattern** delivers a production-ready, GitOps-based solution for
 
 ### Key Features
 
-- **Component-Based Architecture**: Individual Helm charts for each component with enable/disable controls
+- **Kustomize-Based Architecture**: Direct consumption of telco-reference configurations with overlay customization and component selection
 - **GitOps-Native**: Fully automated deployment via ArgoCD with integrated patterns framework
 - **Lifecycle Management**: Integrated cluster management and upgrade capabilities via TALM
 - **Kustomize Patches**: Runtime customization without modifying [reference-crs](https://github.com/openshift-kni/telco-reference/tree/main/telco-hub/configuration/reference-crs) base configurations
@@ -45,8 +45,15 @@ cd telco-hub-pattern
 # Adjust kustomize overlay
 vim ./kustomize/overlays/telco-hub/kustomization.yaml
 
-# Deploy using the pattern framework
-./pattern.sh make operator-deploy
+# Installs the pattern (Loads secrets if configured)
+./pattern.sh make install
+```
+
+### Updates
+
+```bash
+# Update the pattern (DOES NOT load secrets)
+./pattern.sh make operator-upgrade
 ```
 
 ### Verify

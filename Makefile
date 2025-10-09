@@ -1,19 +1,47 @@
 .PHONY: default
-default: help
-
-# help target is now provided by Makefile-common
+default: help     # help target is now provided by Makefile-common
 
 %:
-	make -f common/Makefile $*
+	make -f Makefile-common $*
 
-.PHONY: install
-install: operator-deploy post-install ## installs the pattern and loads the secrets
-	@echo "Installed"
+##@ Testing & Development Tasks
 
-.PHONY: post-install
-post-install: ## Post-install tasks
-	make load-secrets
-	@echo "Done"
+.PHONY: argo-healthcheck
+argo-healthcheck: ## Checks if all argo applications are synced
+	@echo "Checking argo applications"
+	$(eval APPS := $(shell oc get applications.argoproj.io -A -o jsonpath='{range .items[*]}{@.metadata.namespace}{","}{@.metadata.name}{"\n"}{end}'))
+	@NOTOK=0; \
+	for i in $(APPS); do\
+		n=`echo "$${i}" | cut -f1 -d,`;\
+		a=`echo "$${i}" | cut -f2 -d,`;\
+		STATUS=`oc get -n "$${n}" applications.argoproj.io/"$${a}" -o jsonpath='{.status.sync.status}'`;\
+		if [[ $$STATUS != "Synced" ]]; then\
+			NOTOK=$$(( $${NOTOK} + 1));\
+		fi;\
+		HEALTH=`oc get -n "$${n}" applications.argoproj.io/"$${a}" -o jsonpath='{.status.health.status}'`;\
+		if [[ $$HEALTH != "Healthy" ]]; then\
+			NOTOK=$$(( $${NOTOK} + 1));\
+		fi;\
+		echo "$${n} $${a} -> Sync: $${STATUS} - Health: $${HEALTH}";\
+	done;\
+	if [ $${NOTOK} -gt 0 ]; then\
+	    echo "Some applications are not synced or are unhealthy";\
+	    exit 1;\
+	fi
+
+.PHONY: validate-telco-reference
+validate-telco-reference: ## Validates telco-hub pattern against telco-reference CRs using cluster-compare
+	@kustomize build kustomize/overlays/telco-hub/ | \
+		oc cluster-compare \
+			-r https://raw.githubusercontent.com/openshift-kni/telco-reference/refs/heads/main/telco-hub/configuration/reference-crs-kube-compare/metadata.yaml \
+			-f - \
+			-o json | \
+		jq -e "if .Summary.NumDiffCRs > 0 \
+			then \"FAIL: Found \\(.Summary.NumDiffCRs) content differences (goal: 0 diffs)\" | halt_error(1) \
+			elif (.Summary.NumMissingCRs // 0) > 12 \
+			then \"FAIL: Found \\(.Summary.NumMissingCRs) missing CRs from reference (max allowed: 12)\" | halt_error(1) \
+			else \"PASS: No content differences (\\(.Summary.NumDiffCRs) diffs) and acceptable missing CRs (\\(.Summary.NumMissingCRs // 0)/12 max)\" \
+			end"
 
 .PHONY: super-linter
 super-linter: ## Runs the super-linter locally
@@ -38,8 +66,10 @@ super-linter: ## Runs the super-linter locally
 				-w /tmp/lint \
 				ghcr.io/super-linter/super-linter:slim-latest
 
-.PHONY: test
-test:
-	@make -f common/Makefile PATTERN_OPTS="-f values-global.yaml -f values-hub.yaml" test
+.PHONY: validate-kustomize
+validate-kustomize: ## Validates kustomization build and YAML format
+	@kustomize build kustomize/overlays/telco-hub/ > /dev/null && \
+		echo "✓ Kustomize build successful" || \
+		(echo "✗ Kustomize build failed" && exit 1)
 
 include Makefile-common
