@@ -15,10 +15,14 @@ clusterGroup:
   name: hub                               # Name of this cluster group
   isHubCluster: true                      # Designates this as the hub/management cluster
 
+  # Namespaces for telco-hub pattern deployment and policy management
+  namespaces:
+    - telco-hub-pattern                   # Namespace for the third ArgoCD application hosting cluster and policies management
+    - hub-policies                        # Namespace for ACM policies in the Hub cluster
+
   # Management of below resource is delegated to the telco-hub kustomization app
   # in order to prevent systematic conflicts between the Pattern operator and
   # the Telco Hub Reference Design Specifications.
-  namespaces: []
   subscriptions: {}
   projects: {}
 
