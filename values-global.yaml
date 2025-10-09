@@ -39,5 +39,5 @@ main:
     source: community-operators-disconnected        # (disconnected configurations)
 
   gitops:
-    channel: "gitops-1.16"                          # OpenShift GitOps operator channel version
+    channel: "gitops-1.17"                          # OpenShift GitOps operator channel version
     operatorSource: redhat-operators-disconnected   # (disconnected configurations)
