@@ -122,6 +122,7 @@ yq --version            # YAML processing
 - **Cluster Admin**: Full administrative privileges on OpenShift cluster
 - **Git repository** access for telco-reference configurations
 - **oc CLI** tool configured and authenticated
+- **Secret management**: Repository credentials for private Git repositories (if applicable)
 
 ---
 
@@ -135,7 +136,40 @@ git clone https://github.com/validatedpatterns-sandbox/telco-hub-pattern.git
 cd telco-hub-pattern
 ```
 
-### 2. Configure Components
+### 2. Configure Secrets (Optional)
+
+If using private Git repositories for GitOps, configure repository access:
+
+```bash
+# Copy the secret template
+cp values-secret.yaml.template values-secret.yaml
+
+# Edit with your repository credentials
+vim values-secret.yaml
+```
+
+Example configuration for SSH-based repository access:
+
+```yaml
+secrets:
+  - name: ztp-repo
+    targetNamespaces:
+      - telco-hub-pattern
+    labels:
+      argocd.argoproj.io/secret-type: repository
+    annotations:
+      argocd.argoproj.io/sync-wave: "-40"
+    type: Opaque
+    fields:
+      - name: url
+        value: "git@your-git-server.com:namespace/repo.git"
+      - name: insecure
+        value: "false"
+      - name: sshPrivateKey
+        value: "-----BEGIN OPENSSH PRIVATE KEY-----\n...\n-----END OPENSSH PRIVATE KEY-----"
+```
+
+### 3. Configure Components
 
 Edit `kustomize/overlays/telco-hub/kustomization.yaml` to enable required components:
 
@@ -178,14 +212,14 @@ patches:
         value: "redhat-operators"  # or "redhat-operators-disconnected"
 ```
 
-### 3. Deploy the Pattern
+### 4. Deploy the Pattern
 
 ```bash
-# Deploy using the pattern framework
-./pattern.sh make operator-deploy
+# Deploy using the pattern framework (loads secrets if configured)
+./pattern.sh make install
 ```
 
-### 4. Verify Deployment
+### 5. Verify Deployment
 
 ```bash
 # Check pattern deployment status
@@ -206,7 +240,57 @@ The pattern uses a streamlined configuration system:
 |---------------------------------------------------|---------------------------------|----------------------------------------------|
 | `values-global.yaml`                              | 🌍 Global pattern settings      | Cross-environment pattern configuration      |
 | `values-hub.yaml`                                 | 🏭 Hub cluster definition       | ArgoCD application and cluster configuration |
+| `values-secret.yaml`                              | 🔐 Secret management            | Repository credentials and sensitive data    |
 | `kustomize/overlays/telco-hub/kustomization.yaml` | 🎛️ Component selection & patches | Component enablement and environment customization |
+
+### Secret Management
+
+The pattern uses the validated patterns framework for secure secret management:
+
+#### Secret Configuration
+
+Secrets are defined in `values-secret.yaml` and injected via the pattern framework:
+
+```yaml
+# values-secret.yaml
+secrets:
+  - name: ztp-repo
+    targetNamespaces:
+      - telco-hub-pattern
+    labels:
+      argocd.argoproj.io/secret-type: repository
+    annotations:
+      argocd.argoproj.io/sync-wave: "-40"
+    type: Opaque
+    fields:
+      - name: url
+        value: "git@your-git-server.com:namespace/repo.git"
+      - name: sshPrivateKey
+        value: "-----BEGIN OPENSSH PRIVATE KEY-----\n...\n-----END OPENSSH PRIVATE KEY-----"
+```
+
+#### Secret Backend Configuration
+
+Configure the secret backend in `values-global.yaml`:
+
+```yaml
+# values-global.yaml
+global:
+  secretStore:
+    backend: none  # Use direct secret injection (no ESO)
+```
+
+#### Loading Secrets
+
+```bash
+# Load secrets into the cluster
+./pattern.sh make load-secrets
+
+# Or install pattern with secrets
+./pattern.sh make install  # Automatically loads secrets
+```
+
+> **Security Note**: Never commit `values-secret.yaml` to Git. Use `values-secret.yaml.template` as a reference and keep actual secrets in a secure location.
 
 ### Component Selection
 
@@ -468,6 +552,20 @@ oc get csv -A | grep -E "(acm|gitops|talm)"
 ```
 
 **Solution**: Ensure required operators are installed and components are properly uncommented in kustomization.yaml
+
+#### 4. Secret Management Issues
+
+**Problem**: ArgoCD cannot access private repositories
+
+```bash
+# Check if secrets are loaded
+oc get secrets -n telco-hub-pattern | grep ztp-repo
+
+# Verify secret content
+oc get secret ztp-repo -n telco-hub-pattern -o yaml
+```
+
+**Solution**: Ensure `values-secret.yaml` is properly configured and secrets are loaded via `./pattern.sh make load-secrets`
 
 ### Support Resources
 
