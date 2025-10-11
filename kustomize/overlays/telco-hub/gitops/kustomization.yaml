@@ -1,0 +1,16 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - argocd.yaml
+  - managedclustersetbinding.yaml
+  - argocd-ssh-known-hosts-cm.yaml
+  - argocd-tls-certs-cm.yaml
+
+# Sync-wave annotations control the order of resource creation in ArgoCD:
+# - argocd.yaml has sync-wave: "-54" (creates first)
+# - argocd-ssh-known-hosts-cm.yaml has sync-wave: "-40" (creates second)
+# - argocd-tls-certs-cm.yaml has sync-wave: "-40" (creates second)
+# - managedclustersetbinding.yaml has sync-wave: "-25" (creates third)
+# This ensures the ArgoCD instance is created first, followed by configuration resources,
+# and finally the managed cluster set binding
