@@ -5,7 +5,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "-40"
   name: argocd-ssh-known-hosts-cm
-  namespace: openshift-gitops
+  namespace: telco-hub-pattern
 data:
   ssh_known_hosts: |
     #############################################################
@@ -19,3 +19,15 @@ data:
     # my-github.com sh-rsa AAAAB3NzaC1y...J4i36KV/aCl4Ixz
     # my-github.com ecdsa-sha2-nistp256...GGtLKqmwLLeKhe6xgc=
     # my-github-com ssh-ed25519 AAAAC3N...lNrvWjBQ2u
+
+# ============================================================
+#
+# DOCS: https://argo-cd.readthedocs.io/en/stable/operator-manual/declarative-setup/#ssh-known-host-public-keys
+#
+# This ConfigMap contains a single entry, ssh_known_hosts, with the public keys of the SSH servers as its
+# value. The value can be filled in from any existing ssh_known_hosts file, or from the output of the ssh-keyscan
+# utility (which is part of OpenSSH's client package). The basic format is
+# <server_name> <keytype> <base64-encoded_key>, one entry per line.
+#
+# NOTE: The ConfigMap gets mounted as /app/config/ssh/ssh_known_hosts in ArgoCD pods.
+# ============================================================
