@@ -454,9 +454,6 @@ patches:
       - op: replace
         path: /spec/storageDeviceSets/0/dataPVCTemplate/spec/resources/requests/storage
         value: "400Gi"
-      - op: replace
-        path: /spec/storageDeviceSets/0/dataPVCTemplate/spec/storageClassName
-        value: "local-sc"
 
   # ---------------------------------------------------------------------------
   # Cluster Logging Configuration
