@@ -14,23 +14,23 @@ kind: Kustomization
 
 resources:
   # Required: Local Registry
-  # Enable this telco-hub component if you are in a disconnected environment!
-  # - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/required/registry
+  # The Telco Hub Reference Design Specifications targets disconnected environment, hence this component is enabled by default.
+  - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/required/registry
 
   # Required: Advanced Cluster Management (ACM)
   # The ACM telco-hub component requires a storage backend to support its observability functionality.
   # You NEED to configure a storage backend for the hub cluster along with ACM.
-  # - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/required/acm
+  - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/required/acm
 
   # Required: GitOps Operator
   # The telco-hub component creates the GitOps/ArgoCD instance used to manage spoke clusters. This instance
   # includes resource tuning for scalability and an ACM plugin for simplified creation of policies. The validated
   # pattern clustergroup chart does not make these tunings availabile, so a dedicated instances is created through
-  # the prerequisites content. This dedicated instance has all the necessary tuning already included so the
-  # `reference-crs/required/gitops` component does not need to be included. These prerequisites must be included
+  # the `gitops` content. This dedicated instance has all the necessary tuning already included so the
+  # `reference-crs/required/gitops` component does not need to be included. These `gitops` must be included
   # prior to the other components.
   # - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/required/gitops
-  - prerequisites/
+  - gitops/
 
   # Required: Topology Aware Lifecycle Manager (TALM)
   - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/required/talm
@@ -41,11 +41,11 @@ resources:
 
   # Optional: Local Storage Operator (LSO)
   # Enable this telco-hub component if you use LSO as you storage backend!
-  # - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/optional/lso
+  - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/optional/lso
 
   # Optional: Open Data Foundation (ODF)
   # Enable this telco-hub component if you use ODF as you storage backend!
-  # - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/optional/odf-internal
+  - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/optional/odf-internal
 
   # Optional: Logging Operator
   # Enable this telco-hub component if you use the logging operator!
@@ -67,12 +67,311 @@ patches:
   # Sample patches for this telco-hub component can be found in the below link:
   # - https://github.com/openshift-kni/telco-reference/tree/main/telco-hub/configuration/example-overlays-config/registry
 
+  # NOTE: The following IDMS and ITMS configurations are example patches that should be
+  # replaced with actual output from oc-mirror. These mirror configurations come directly
+  # from the output of running `oc-mirror` with the imageset-config.yaml file.
+
+  # Update Red Hat operators catalog to use specific version
+  - target:
+      group: operators.coreos.com
+      version: v1alpha1
+      kind: CatalogSource
+      name: redhat-operators-disconnected
+    patch: |-
+      - op: replace
+        path: /spec/image
+        value: <registry.example.com:8443>/openshift-marketplace/redhat-operators-disconnected:v4.20
+
+  # Add registry CA to the hub cluster
+  - target:
+      version: v1
+      kind: ConfigMap
+      name: registry-ca
+    patch: |-
+      - op: replace
+        path: /data
+        value:
+          registry.example.com..8443 |
+          -----BEGIN CERTIFICATE-----
+          MIIGcjCCBFqgAwIBAgIFICIE...
+          -----END CERTIFICATE-----
+
+  # Mirror configuration for operator and component images
+  # NOTE: This IDMS configuration comes directly from oc-mirror output
+  - target:
+      group: config.openshift.io
+      version: v1
+      kind: ImageDigestMirrorSet
+      name: idms-operator-0
+    patch: |-
+      - op: replace
+        path: /spec/imageDigestMirrors
+        value:
+          - mirrors:
+            - <registry.example.com:8443>/oadp
+            source: registry.redhat.io/oadp
+          - mirrors:
+            - <registry.example.com:8443>/multicluster-engine
+            source: registry.redhat.io/multicluster-engine
+          - mirrors:
+            - <registry.example.com:8443>/rhel8
+            source: registry.redhat.io/rhel8
+          - mirrors:
+            - <registry.example.com:8443>/odf4
+            source: registry.redhat.io/odf4
+          - mirrors:
+            - <registry.example.com:8443>/rhel9
+            source: registry.redhat.io/rhel9
+          - mirrors:
+            - <registry.example.com:8443>/rhceph
+            source: registry.redhat.io/rhceph
+          - mirrors:
+            - <registry.example.com:8443>/openshift-gitops-1
+            source: registry.redhat.io/openshift-gitops-1
+          - mirrors:
+            - <registry.example.com:8443>/rh-sso-7
+            source: registry.redhat.io/rh-sso-7
+          - mirrors:
+            - <registry.example.com:8443>/rhacm2
+            source: registry.redhat.io/rhacm2
+          - mirrors:
+            - <registry.example.com:8443>/openshift4
+            source: registry.redhat.io/openshift4
+
+  # Mirror configuration for OpenShift release images
+  # NOTE: This IDMS configuration comes directly from oc-mirror output
+  - target:
+      group: config.openshift.io
+      version: v1
+      kind: ImageDigestMirrorSet
+      name: idms-release-0
+    patch: |-
+      - op: replace
+        path: /spec/imageDigestMirrors
+        value:
+          - mirrors:
+            - <registry.example.com:8443>/openshift-release-dev
+            source: quay.io/openshift-release-dev
+
+  # Tag mirror configuration for base images (UBI, RHEL, OpenShift4)
+  # NOTE: This ITMS configuration comes directly from oc-mirror output
+  - target:
+      group: config.openshift.io
+      version: v1
+      kind: ImageTagMirrorSet
+      name: itms-generic-0
+    patch: |-
+      - op: replace
+        path: /spec/imageTagMirrors
+        value:
+          - mirrors:
+            - <registry.example.com:8443>/ubi8
+            source: registry.redhat.io/ubi8
+          - mirrors:
+            - <registry.example.com:8443>/openshift4
+            source: registry.redhat.io/openshift4
+          - mirrors:
+            - <registry.example.com:8443>/rhel8
+            source: registry.redhat.io/rhel8
+
+  # Tag mirror configuration for OpenShift release development images
+  # NOTE: This ITMS configuration comes directly from oc-mirror output
+  - target:
+      group: config.openshift.io
+      version: v1
+      kind: ImageTagMirrorSet
+      name: itms-release-0
+    patch: |-
+      - op: replace
+        path: /spec/imageTagMirrors
+        value:
+          - mirrors:
+            - <registry.example.com:8443>/openshift-release-dev
+            source: quay.io/openshift-release-dev
+
   # ---------------------------------------------------------------------------
   # Advanced Cluster Management Configuration
   # ---------------------------------------------------------------------------
 
   # Sample patches for this telco-hub component can be found in the below link:
   # - https://github.com/openshift-kni/telco-reference/tree/main/telco-hub/configuration/example-overlays-config/acm
+
+  # Configure storage for MultiClusterObservability
+  - target:
+      group: observability.open-cluster-management.io
+      version: v1beta2
+      kind: MultiClusterObservability
+      name: observability
+    patch: |-
+      - op: replace
+        path: /spec/storageConfig/storageClass
+        value: "ocs-storagecluster-cephfs"
+
+  # AgentServiceConfig storage and OS images configuration
+  - target:
+      group: agent-install.openshift.io
+      version: v1beta1
+      kind: AgentServiceConfig
+      name: agent
+    patch: |-
+      - op: replace
+        path: "/spec/osImages"
+        value:
+          - cpuArchitecture: x86_64
+            openshiftVersion: "4.18"
+            rootFSUrl: https://mirror.example.com/pub/openshift-v4/x86_64/dependencies/rhcos/4.18/latest/rhcos-live-rootfs.x86_64.img
+            url: https://mirror.example.com/pub/openshift-v4/x86_64/dependencies/rhcos/4.18/latest/rhcos-live.x86_64.iso
+            version: 418.94.202502100215-0
+          - cpuArchitecture: x86_64
+            openshiftVersion: "4.19"
+            rootFSUrl: https://mirror.example.com/pub/openshift-v4/x86_64/dependencies/rhcos/4.19/latest/rhcos-live-rootfs.x86_64.img
+            url: https://mirror.example.com/pub/openshift-v4/x86_64/dependencies/rhcos/4.19/latest/rhcos-live-iso.x86_64.iso
+            version: 9.6.20250530-0
+          - cpuArchitecture: x86_64
+            openshiftVersion: "4.20"
+            rootFSUrl: https://mirror.example.com/pub/openshift-v4/x86_64/dependencies/rhcos/4.20/latest/rhcos-live-rootfs.x86_64.img
+            url: https://mirror.example.com/pub/openshift-v4/x86_64/dependencies/rhcos/4.20/latest/rhcos-live-iso.x86_64.iso
+            version: 9.6.20250530-0
+
+  # Configure ACM Mirror Registry ConfigMap
+  # Ref: https://github.com/openshift/assisted-service/blob/master/docs/operator.md#mirror-registry-configuration
+  - target:
+      version: v1
+      kind: ConfigMap
+      name: mirror-registry-config
+    patch: |-
+      - op: replace
+        path: /data/ca-bundle.crt
+        value: |
+          -----BEGIN CERTIFICATE-----
+          MIIDzTCCArWgAwIBAgkx...
+          -----END CERTIFICATE-----
+          -----BEGIN CERTIFICATE-----
+          MIIEGTCCAwGgAwIBAgIU...
+          -----END CERTIFICATE-----
+      - op: replace
+        path: "/data/registries.conf"
+        value: |-
+          unqualified-search-registries = ["registry.access.redhat.com", "docker.io"]
+          [[registry]]
+            prefix = ""
+            location = "quay.io/openshift-release-dev/ocp-release"
+
+            [[registry.mirror]]
+              location = "<registry.example.com:8443>/openshift/release-images"
+              pull-from-mirror = "digest-only"
+
+          [[registry]]
+            prefix = ""
+            location = "quay.io/openshift-release-dev/ocp-v4.0-art-dev"
+
+            [[registry.mirror]]
+              location = "<registry.example.com:8443>/openshift/release"
+              pull-from-mirror = "digest-only"
+
+          [[registry]]
+            prefix = ""
+            location = "registry.redhat.io/multicluster-engine"
+
+            [[registry.mirror]]
+              location = "<registry.example.com:8443>/multicluster-engine"
+              pull-from-mirror = "digest-only"
+
+          [[registry]]
+            prefix = ""
+            location = "registry.redhat.io/odf4"
+
+            [[registry.mirror]]
+              location = "<registry.example.com:8443>/odf4"
+              pull-from-mirror = "digest-only"
+
+          [[registry]]
+            prefix = ""
+            location = "registry.redhat.io/openshift4"
+
+            [[registry.mirror]]
+              location = "<registry.example.com:8443>/openshift4"
+              pull-from-mirror = "digest-only"
+
+          [[registry]]
+            prefix = ""
+            location = "registry.redhat.io/rhacm2"
+
+            [[registry.mirror]]
+              location = "<registry.example.com:8443>/rhacm2"
+              pull-from-mirror = "digest-only"
+
+          [[registry]]
+            prefix = ""
+            location = "registry.redhat.io/rhceph"
+
+            [[registry.mirror]]
+              location = "<registry.example.com:8443>/rhceph"
+              pull-from-mirror = "digest-only"
+
+          [[registry]]
+            prefix = ""
+            location = "registry.redhat.io/rhel8"
+
+            [[registry.mirror]]
+              location = "<registry.example.com:8443>/rhel8"
+              pull-from-mirror = "digest-only"
+
+          [[registry]]
+            prefix = ""
+            location = "registry.redhat.io/rhel9"
+
+            [[registry.mirror]]
+              location = "<registry.example.com:8443>/rhel9"
+              pull-from-mirror = "digest-only"
+
+          [[registry]]
+            prefix = ""
+            location = "registry.redhat.io/ubi9"
+
+            [[registry.mirror]]
+              location = "<registry.example.com:8443>/ubi9"
+              pull-from-mirror = "tag-only"
+
+          [[registry]]
+            prefix = ""
+            location = "registry.redhat.io/ubi8"
+
+            [[registry.mirror]]
+              location = "<registry.example.com:8443>/ubi8"
+              pull-from-mirror = "tag-only"
+
+          [[registry]]
+            prefix = ""
+            location = "registry.redhat.io/oadp"
+
+            [[registry.mirror]]
+              location = "<registry.example.com:8443>/oadp"
+              pull-from-mirror = "digest-only"
+
+          [[registry]]
+            prefix = ""
+            location = "registry.redhat.io/openshift-gitops-1"
+
+            [[registry.mirror]]
+              location = "<registry.example.com:8443>/openshift-gitops-1"
+              pull-from-mirror = "digest-only"
+
+          [[registry]]
+            prefix = ""
+            location = "registry.redhat.io/rh-sso-7"
+
+            [[registry.mirror]]
+              location = "<registry.example.com:8443>/rh-sso-7"
+              pull-from-mirror = "digest-only"
+
+          [[registry]]
+            prefix = ""
+            location = "registry.redhat.io/openshift-logging"
+
+            [[registry.mirror]]
+              location = "<registry.example.com:8443>/openshift-logging"
+              pull-from-mirror = "digest-only"
 
   # ---------------------------------------------------------------------------
   # GitOps Operator Configuration
@@ -81,20 +380,41 @@ patches:
   # Sample patches for this telco-hub component can be found in the below link:
   # - https://github.com/openshift-kni/telco-reference/tree/main/telco-hub/configuration/example-overlays-config/gitops
 
-  # ---------------------------------------------------------------------------
-  # Topology Aware Lifecycle Manager
-  # ---------------------------------------------------------------------------
-
-  # Ensure the TALM operator uses Red Hat catalog
+  # Configure SSH known hosts for Git repository authentication
+  # Ref: https://argo-cd.readthedocs.io/en/stable/operator-manual/declarative-setup/#ssh-known-host-public-keys
   - target:
-      group: operators.coreos.com
-      version: v1alpha1
-      kind: Subscription
-      name: openshift-topology-aware-lifecycle-manager-subscription
+      version: v1
+      kind: ConfigMap
+      name: argocd-ssh-known-hosts-cm
     patch: |-
       - op: replace
-        path: "/spec/source"
-        value: "redhat-operators"
+        path: /data/ssh_known_hosts
+        value: |
+          #############################################################
+          # by default empty known hosts, because of usual            #
+          # disconnected environments.                                #
+          #                                                           #
+          #  Manually add needed ssh known hosts:                     #
+          #  example: $> ssh-keyscan my-github.com                    #
+          #  Copy the output here
+          #############################################################
+          # my-github.com sh-rsa AAAAB3NzaC1y...J4i36KV/aCl4Ixz
+          # my-github.com ecdsa-sha2-nistp256...GGtLKqmwLLeKhe6xgc=
+          # my-github-com ssh-ed25519 AAAAC3N...lNrvWjBQ2u
+
+  # Configure TLS certificates for Git repository access
+  - target:
+      version: v1
+      kind: ConfigMap
+      name: argocd-tls-certs-cm
+    patch: |-
+      - op: replace
+        path: /data
+        value:
+          gitlab.cee.redhat.com: |
+            -----BEGIN CERTIFICATE-----
+            MIIGcjCCBFqgAwIBAgIFICIE...
+            -----END CERTIFICATE-----
 
   # ---------------------------------------------------------------------------
   # Local Storage Operator Configuration
@@ -103,6 +423,19 @@ patches:
   # Sample patches for this telco-hub component can be found in the below link:
   # - https://github.com/openshift-kni/telco-reference/tree/main/telco-hub/configuration/example-overlays-config/lso
 
+  # LocalVolume disk paths configuration
+  - target:
+      group: local.storage.openshift.io
+      version: v1
+      kind: LocalVolume
+      name: local-disks
+      namespace: openshift-local-storage
+    patch: |-
+      - op: replace
+        path: /spec/storageClassDevices/0/devicePaths
+        value:
+          - /dev/nvme1n1
+
   # ---------------------------------------------------------------------------
   # Open Data Foundation Configuration
   # ---------------------------------------------------------------------------
@@ -110,12 +443,42 @@ patches:
   # Sample patches for this telco-hub component can be found in the below link:
   # - https://github.com/openshift-kni/telco-reference/tree/main/telco-hub/configuration/example-overlays-config/odf
 
+  # OCS StorageCluster configuration
+  - target:
+      group: ocs.openshift.io
+      version: v1
+      kind: StorageCluster
+      name: ocs-storagecluster
+      namespace: openshift-storage
+    patch: |-
+      - op: replace
+        path: /spec/storageDeviceSets/0/dataPVCTemplate/spec/resources/requests/storage
+        value: "400Gi"
+
   # ---------------------------------------------------------------------------
   # Cluster Logging Configuration
   # ---------------------------------------------------------------------------
 
   # Sample patches for this telco-hub component can be found in the below link:
   # - https://github.com/openshift-kni/telco-reference/tree/main/telco-hub/configuration/example-overlays-config/logging
+
+  # ClusterLogForwarder with hub-specific labelsconfiguration
+  # - target:
+  #     group: observability.openshift.io
+  #     version: v1
+  #     kind: ClusterLogForwarder
+  #     name: instance
+  #     namespace: openshift-logging
+  #   patch: |-
+  #     - op: replace
+  #       path: "/spec/outputs/0/kafka/url"
+  #       value: "tcp://jumphost.inbound.lab:9092/logs"
+  #     - op: add
+  #       path: /spec/filters/0/openshiftLabels
+  #       value:
+  #         cluster-role: hub
+  #         environment: production
+  #         telco-component: hub
 
   # ---------------------------------------------------------------------------
   # GitOps ZTP Configuration
@@ -158,7 +521,7 @@ patches:
     #    value: "clusters"
     #  - op: replace
     #    path: "/spec/source/repoURL"
-    #    value: "http://jumphost.inbound.lab:3000/kni/faredge-ztp.git"
+    #    value: "git@jumphost.inbound.lab:3000/kni/faredge-ztp.git"
     #  - op: replace
     #    path: "/spec/source/targetRevision"
     #    value: "hub2-branch"
@@ -196,7 +559,7 @@ patches:
     #    value: "site-policies"
     #  - op: replace
     #    path: "/spec/source/repoURL"
-    #    value: "http://jumphost.inbound.lab:3000/kni/faredge-ztp.git"
+    #    value: "git@jumphost.inbound.lab:3000/kni/faredge-ztp.git"
     #  - op: replace
     #    path: "/spec/source/targetRevision"
     #    value: "hub2-branch"
