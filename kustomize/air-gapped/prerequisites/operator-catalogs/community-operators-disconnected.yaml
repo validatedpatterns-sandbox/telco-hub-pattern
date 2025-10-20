@@ -5,10 +5,10 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "-10"
     target.workload.openshift.io/management: '{"effect": "PreferredDuringScheduling"}'
-  name: redhat-operators-disconnected
+  name: community-operators-disconnected
   namespace: openshift-marketplace
 spec:
-  displayName: Disconnected Red Hat Operators
-  image: registry.redhat.io/redhat/redhat-operator-index:v4.19
+  displayName: Disconnected Community Operators
+  image: <registry.example.com:8443>/openshift-marketplace/community-operators-disconnected:<version>
   publisher: Red Hat
   sourceType: grpc

@@ -4,10 +4,6 @@
 # =============================================================================
 # REQUIRED: Apply as Day-0 prerequisite before `pattern.sh make install`.
 #
-# Catalogs:
-# - redhat-operators-disconnected: Required for GitOps and Telco Hub operators
-# - community-operators-disconnected: Required for Validated Patterns operator
-#
 # Usage:
 # 1. oc apply -k kustomize/air-gapped/prerequisites/
 # 2. Deploy telco-hub pattern via `pattern.sh make install`
@@ -17,11 +13,29 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
-  - operator-hub.yaml
-  - redhat-operators-disconnected.yaml
-  - community-operators-disconnected.yaml
+  - network-proxy/
+  - operator-catalogs/
 
 patches:
+
+  # Add CA certificate bundle for self-signed GIT repositories in disconnected environments.
+  # Required when the telco-hub pattern repo is hosted on local GIT servers with self-signed certificates
+  # and without GIT authentication available. The pattern operator lack the ability of accepting
+  # custom CAs currently, causing TLS verification failures during repo cloning.
+  - target:
+      group: ""
+      version: v1
+      kind: ConfigMap
+      name: cluster-proxy-config
+      namespace: openshift-config
+    patch: |-
+      - op: add
+        path: /data/ca-bundle.crt
+        value: |
+          -----BEGIN CERTIFICATE-----
+          MIIGcjCCBFqgAwIBAgIFICIE...
+          -----END CERTIFICATE-----
+
   # Pin RedHat operators catalog to index mirrored in local registry
   - target:
       group: operators.coreos.com
@@ -31,7 +45,7 @@ patches:
     patch: |-
       - op: replace
         path: /spec/image
-        value: registry.redhat.io/redhat/redhat-operator-index:v4.19
+        value: <registry.example.com:8443>/openshift-marketplace/redhat-operators-disconnected:<version>
 
   # Pin Community operators catalog to index mirrored in local registry
   - target:
@@ -42,4 +56,4 @@ patches:
     patch: |-
       - op: replace
         path: /spec/image
-        value: registry.redhat.io/redhat/community-operator-index:v4.19
+        value: <registry.example.com:8443>/openshift-marketplace/community-operators-disconnected:<version>
