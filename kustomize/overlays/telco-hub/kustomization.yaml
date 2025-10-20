@@ -518,13 +518,13 @@ patches:
         value: "telco-hub-pattern"
     #  - op: replace
     #    path: "/spec/source/path"
-    #    value: "clusters"
+    #    value: "ztp/gitops-subscriptions/argocd/example/siteconfig"
     #  - op: replace
     #    path: "/spec/source/repoURL"
-    #    value: "git@jumphost.inbound.lab:3000/kni/faredge-ztp.git"
+    #    value: "https://github.com/openshift-kni/cnf-features-deploy"
     #  - op: replace
     #    path: "/spec/source/targetRevision"
-    #    value: "hub2-branch"
+    #    value: "master"
     #  - op: add
     #    path: "/spec/syncPolicy"
     #    value:
@@ -556,13 +556,13 @@ patches:
         value: "telco-hub-pattern"
     #  - op: replace
     #    path: "/spec/source/path"
-    #    value: "site-policies"
+    #    value: "ztp/gitops-subscriptions/argocd/example/policygentemplates"
     #  - op: replace
     #    path: "/spec/source/repoURL"
-    #    value: "git@jumphost.inbound.lab:3000/kni/faredge-ztp.git"
+    #    value: "https://github.com/openshift-kni/cnf-features-deploy"
     #  - op: replace
     #    path: "/spec/source/targetRevision"
-    #    value: "hub2-branch"
+    #    value: "master"
 
   # ClusterRoleBinding for gitops-policy
   - target:
