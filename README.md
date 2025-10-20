@@ -23,7 +23,6 @@ The **Telco Hub Pattern** delivers a production-ready, GitOps-based solution for
 - **Lifecycle Management**: Integrated cluster management and upgrade capabilities via TALM
 - **Kustomize Patches**: Runtime customization without modifying [reference-crs](https://github.com/openshift-kni/telco-reference/tree/main/telco-hub/configuration/reference-crs) base configurations
 - **Zero Touch Provisioning**: Automated cluster installation and configuration workflows
-- **Secure Secret Management**: Pattern framework-based secret injection for GitOps repository access
 - **Observability Ready**: Built-in monitoring and logging options
 
 ---
@@ -35,7 +34,6 @@ The **Telco Hub Pattern** delivers a production-ready, GitOps-based solution for
 - **OpenShift 4.14+** cluster with cluster-admin privileges
 - **Git repository** access for telco-reference configurations
 - **oc CLI** tool configured and authenticated
-- **Secret configuration** for GitOps repository access (if using private repositories)
 
 ### Deploy
 
@@ -43,10 +41,6 @@ The **Telco Hub Pattern** delivers a production-ready, GitOps-based solution for
 # Clone the repository
 git clone https://github.com/validatedpatterns-sandbox/telco-hub-pattern.git
 cd telco-hub-pattern
-
-# Configure secrets (if using private repositories)
-cp values-secret.yaml.template values-secret.yaml
-# Edit values-secret.yaml with your repository credentials
 
 # Adjust kustomize overlay
 vim ./kustomize/overlays/telco-hub/kustomization.yaml

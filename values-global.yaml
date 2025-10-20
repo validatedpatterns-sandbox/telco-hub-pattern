@@ -14,8 +14,8 @@ global:
   pattern: telco-hub-pattern              # Name of the validated pattern
 
   # Secret management configuration
-  secretStore:
-    backend: none                          # Use direct secret injection (no ESO)
+  secretLoader:
+    disabled: true
 
   # Global pattern options that affect all clusters
   options:
