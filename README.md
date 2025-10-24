@@ -42,6 +42,10 @@ The **Telco Hub Pattern** delivers a production-ready, GitOps-based solution for
 git clone https://github.com/validatedpatterns-sandbox/telco-hub-pattern.git
 cd telco-hub-pattern
 
+# (Optional) For disconnected environments, update and apply prerequisites first
+vim ./kustomize/air-gapped/prerequisites/kustomization.yaml
+oc apply -k ./kustomize/air-gapped/prerequisites/
+
 # Adjust kustomize overlay
 vim ./kustomize/overlays/telco-hub/kustomization.yaml
 
