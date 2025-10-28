@@ -105,6 +105,8 @@ telco-hub-pattern/
 - **Storage**: 500GB+ available storage
 - **Network**: internet connectivity for operator installations
 
+> **Disconnected Environments**: For air-gapped deployments, see the [Disconnected Deployment Guide](disconnected-deployment.md).
+
 #### Local Tools
 
 ```bash
@@ -495,6 +497,12 @@ Official component documentation is available in the telco-reference repository:
 - [TALM Management](https://github.com/openshift-kni/telco-reference/tree/main/telco-hub/configuration/reference-crs/required/talm)
 - [Optional Components](https://github.com/openshift-kni/telco-reference/tree/main/telco-hub/configuration/reference-crs/optional)
 - [Example Overlays](https://github.com/openshift-kni/telco-reference/tree/main/telco-hub/configuration/example-overlays-config)
+
+### Disconnected Environments
+
+For air-gapped and disconnected network deployments:
+
+- **[Disconnected Deployment Guide](disconnected-deployment.md)** — Complete guide for deploying in restricted environments
 
 ### External Resources
 

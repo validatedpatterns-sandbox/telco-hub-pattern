@@ -35,8 +35,16 @@
 #       - name: patterns-operator
 #   ... REDACTED ...
 #
+#   - name: openshift-gitops-operator
+#     defaultChannel: gitops-1.17          # <- ensure this is the same as the one in the values-global.yaml file
+#     channels:
+#     - name: gitops-1.17                  # <- ensure this is the same as the one in the values-global.yaml file
+#   ... REDACTED ...
+#
+#
 #   additionalImages:
 #   - name: registry.redhat.io/ubi9/ubi-minimal:latest
+#   - name: quay.io/hybridcloudpatterns/imperative-container:v1
 #   ... REDACTED ...
 #
 #   helm: {}
