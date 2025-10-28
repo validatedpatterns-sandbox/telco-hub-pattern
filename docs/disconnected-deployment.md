@@ -79,7 +79,7 @@ oc apply -f ${OC_MIRROR_WORKDIR_PATH}/cluster-resources/cs-community-operators-d
          -f ${OC_MIRROR_WORKDIR_PATH}/cluster-resources/idms-oc-mirror.yaml
 ```
 
-> **IMPORTANT:** Update the [overlay/telco-hub/kustomization.yaml](../../kustomize/overlays/telco-hub/kustomization.yaml) file with these generated artifacts before proceeding with pattern installation.
+> **IMPORTANT:** Update the [overlay/telco-hub/kustomization.yaml](../kustomize/overlays/telco-hub/kustomization.yaml) file with these generated artifacts before proceeding with pattern installation.
 
 After applying these artifacts, cluster nodes will begin rolling out to apply the changes. This process may take several minutes. Monitor the rollout progress using the command below.
 

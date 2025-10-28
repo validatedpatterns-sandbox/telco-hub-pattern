@@ -49,7 +49,7 @@ vim ./kustomize/overlays/telco-hub/kustomization.yaml
 ./pattern.sh make install
 ```
 
-> **Disconnected Environments**: For air-gapped deployments, see the [Disconnected Deployment Guide](docs/disconnected-deployment.md).
+> **NOTE:** For air-gapped and disconnected network environments, complete the steps described in [Disconnected Deployment Guide](docs/disconnected-deployment.md) before pattern installation.
 
 ### Updates
 
@@ -101,8 +101,8 @@ This pattern is designed specifically for telecommunication use cases and provid
 
 ## Documentation
 
-**[Getting Started Guide](docs/getting-started.md)** — Comprehensive setup, configuration, and operation guide
-**[Disconnected Deployment Guide](docs/disconnected-deployment.md)** — Complete guide for deploying in restricted environments
+- **[Getting Started Guide](docs/getting-started.md)** — Comprehensive setup, configuration, and operation guide
+- **[Disconnected Deployment Guide](docs/disconnected-deployment.md)** — Complete guide for deploying in restricted environments
 
 ### External Resources
 
