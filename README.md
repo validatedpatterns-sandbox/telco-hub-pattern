@@ -42,16 +42,14 @@ The **Telco Hub Pattern** delivers a production-ready, GitOps-based solution for
 git clone https://github.com/validatedpatterns-sandbox/telco-hub-pattern.git
 cd telco-hub-pattern
 
-# (Optional) For disconnected environments, update and apply prerequisites first
-vim ./kustomize/air-gapped/prerequisites/kustomization.yaml
-oc apply -k ./kustomize/air-gapped/prerequisites/
-
 # Adjust kustomize overlay
 vim ./kustomize/overlays/telco-hub/kustomization.yaml
 
-# Installs the pattern (Loads secrets if configured)
+# Install the pattern (Loads secrets if configured)
 ./pattern.sh make install
 ```
+
+> **Disconnected Environments**: For air-gapped deployments, see the [Disconnected Deployment Guide](docs/disconnected-deployment.md).
 
 ### Updates
 
@@ -104,6 +102,7 @@ This pattern is designed specifically for telecommunication use cases and provid
 ## Documentation
 
 **[Getting Started Guide](docs/getting-started.md)** — Comprehensive setup, configuration, and operation guide
+**[Disconnected Deployment Guide](docs/disconnected-deployment.md)** — Complete guide for deploying in restricted environments
 
 ### External Resources
 
