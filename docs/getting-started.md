@@ -64,10 +64,14 @@ This pattern is designed specifically for telecommunications use cases and provi
 ```bash
 telco-hub-pattern/
 ├── kustomize/overlays/telco-hub/        # 🔧 Kustomize Overlay Configuration
-│   └── kustomization.yaml              # Component selection and patches
+│   └── kustomization.yaml               # Component selection and patches
+├── kustomize/air-gapped/                # 🛡️ Disconnected (air-gapped) assets
+│   ├── imageset-config.yaml             # Image mirroring (oc-mirror)
+│   ├── prerequisites/                   # Cluster proxy, catalogs, CAs
+│   │   └── kustomization.yaml
+│   └── README.md                        # Disconnected deployment guide
 ├── values-hub.yaml                      # Hub Cluster Definition
 ├── values-global.yaml                   # Global Pattern Settings
-├── common/                              # 📦 Validated Patterns Framework
 └── docs/                                # Documentation
 
 # Consumed Remote Resources (via kustomize):
@@ -139,7 +143,7 @@ cd telco-hub-pattern
 
 ### 2. Configure Components
 
-Edit `kustomize/overlays/telco-hub/kustomization.yaml` to enable required components:
+Edit `kustomize/overlays/telco-hub/kustomization.yaml` to review, enable, and customize components:
 
 ```yaml
 # =============================================================================
@@ -150,44 +154,73 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
-  # Required: Advanced Cluster Management (uncomment to enable)
-  # - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/required/acm
+  # Required: Local Registry
+  # The Telco Hub Reference Design Specifications targets disconnected environments, hence this component is enabled by default.
+  - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/required/registry
 
-  # Required: Topology Aware Lifecycle Manager (enabled by default)
+  # Required: Advanced Cluster Management (ACM)
+  # The ACM telco-hub component requires a storage backend to support its observability functionality.
+  # You NEED to configure a storage backend for the hub cluster along with ACM.
+  - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/required/acm
+
+  # Required: GitOps Operator
+  # The telco-hub component creates the GitOps/ArgoCD instance used to manage spoke clusters. This instance
+  # includes resource tuning for scalability and an ACM plugin for simplified creation of policies. The validated
+  # pattern clustergroup chart does not make these tunings available, so a dedicated instance is created through
+  # the `gitops` content. This dedicated instance has all the necessary tuning already included so the
+  # `reference-crs/required/gitops` component does not need to be included. These `gitops` must be included
+  # prior to the other components.
+  # - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/required/gitops
+  - gitops/
+
+  # Required: Topology Aware Lifecycle Manager (TALM)
   - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/required/talm
 
-  # Workflow: GitOps ZTP Installation (uncomment if deploying clusters via ZTP)
+  # Workflow: GitOps ZTP Installation
+  # Enable this telco-hub component if you deploy clusters via GitOps ZTP!
   # - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/required/gitops/ztp-installation
 
-  # Optional Components (uncomment as needed):
-  # - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/optional/lso
-  # - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/optional/odf-internal  
+  # Optional: Local Storage Operator (LSO)
+  # Enable this telco-hub component if you use LSO as your storage backend!
+  - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/optional/lso
+
+  # Optional: Open Data Foundation (ODF)
+  # Enable this telco-hub component if you use ODF as your storage backend!
+  - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/optional/odf-internal
+
+  # Optional: Logging Operator
+  # Enable this telco-hub component if you use the logging operator!
   # - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/optional/logging
 
-  # Disconnected: Local Registry (uncomment for disconnected environments)
-  # - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/required/registry
 
 # Environment-specific patches (example for disconnected environments)
 patches:
   - target:
       group: operators.coreos.com
       version: v1alpha1
-      kind: Subscription
-      name: openshift-topology-aware-lifecycle-manager-subscription
+      kind: CatalogSource
+      name: redhat-operators-disconnected
     patch: |-
       - op: replace
-        path: "/spec/source"
-        value: "redhat-operators"  # or "redhat-operators-disconnected"
+        path: /spec/image
+        value: <registry.example.com:8443>/openshift-marketplace/redhat-operators-disconnected:v4.20
 ```
 
-### 3. Deploy the Pattern
+### 3. Deploy the pattern (loads secrets if configured)
 
 ```bash
 # Deploy using the pattern framework
 ./pattern.sh make operator-deploy
 ```
 
-### 4. Verify Deployment
+### 4. Update the pattern (does not load secrets)
+
+```bash
+# Update pattern during day2
+./pattern.sh make operator-upgrade
+```
+
+### 5. Verify Deployment
 
 ```bash
 # Check pattern deployment status
@@ -209,6 +242,8 @@ The pattern uses a streamlined configuration system:
 | `values-global.yaml`                              | 🌍 Global pattern settings      | Cross-environment pattern configuration      |
 | `values-hub.yaml`                                 | 🏭 Hub cluster definition       | ArgoCD application and cluster configuration |
 | `kustomize/overlays/telco-hub/kustomization.yaml` | 🎛️ Component selection & patches | Component enablement and environment customization |
+| `kustomize/air-gapped/imageset-config.yaml`       | 🖼️ Image mirroring config      | Mirror required images and catalogs (disconnected) |
+| `kustomize/air-gapped/prerequisites/kustomization.yaml` | 🛡️ Disconnected prerequisites | Apply proxy, CA, and catalog sources (disconnected) |
 
 ### Component Selection
 
@@ -332,41 +367,30 @@ graph TD
 The pattern includes comprehensive management via the pattern framework:
 
 ```bash
--> ./pattern.sh help
+-> ./pattern.sh make help
 
-Pattern: telco-hub-pattern
+For a complete guide to these targets and the available overrides, please visit https://validatedpatterns.io/blog/2025-08-29-new-common-makefile-structure/
 
 Usage:
   make <target>
 
-Pattern tasks
-  install                              installs the pattern and loads the secrets
-  post-install                         Post-install tasks
+Testing & Development Tasks
+  argo-healthcheck                     Checks if all argo applications are synced
+  validate-telco-reference             Validates telco-hub pattern against telco-reference CRs using cluster-compare
+  super-linter                         Runs the super-linter locally
+  validate-kustomize                   Validates kustomization build and YAML format
+  help                                 Print this help message
 
-Pattern Common Tasks
-  help                                 This help message
-  show                                 show the starting template without installing it
-  preview-all                          (EXPERIMENTAL) Previews all applications on hub and managed clusters
-  operator-deploy operator-upgrade     runs helm install
-  uninstall                            runs helm uninstall
-  load-secrets                         loads the secrets into the backend determined by values-global setting
-  legacy-load-secrets                  loads the secrets into vault (only)
-  secrets-backend-vault                Edits values files to use default Vault+ESO secrets config
-  secrets-backend-kubernetes           Edits values file to use Kubernetes+ESO secrets config
-  secrets-backend-none                 Edits values files to remove secrets manager + ESO
-  load-iib                             CI target to install Index Image Bundles
-  token-kubeconfig                     Create a local ~/.kube/config with password (not usually needed)
+Pattern Install Tasks
+  show                                 Shows the template that would be applied by the `make install` target
+  operator-deploy operator-upgrade     Installs/updates the pattern on a cluster (DOES NOT load secrets)
+  install                              Installs the pattern onto a cluster (Loads secrets as well if configured)
+  load-secrets                         Loads secrets onto the cluster (unless explicitly disabled in values-global.yaml)
 
 Validation Tasks
+  validate-prereq                      verify pre-requisites
   validate-origin                      verify the git origin is available
   validate-cluster                     Do some cluster validations before installing
-  validate-schema                      validates values files against schema in common/clustergroup
-  validate-prereq                      verify pre-requisites
-  argo-healthcheck                     Checks if all argo applications are synced
-
-Test and Linters Tasks
-  qe-tests                             Runs the tests that QE runs
-  super-linter                         Runs super linter locally
 ```
 
 ### Day-2 Operations
@@ -378,7 +402,7 @@ Test and Linters Tasks
 vi kustomize/overlays/telco-hub/kustomization.yaml
 
 # Uncomment desired component resources, for example:
-# - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/required/acm
+# - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/optional/logging
 
 # Apply changes
 ./pattern.sh make operator-upgrade
@@ -407,24 +431,36 @@ vi kustomize/overlays/telco-hub/kustomization.yaml
 #### Monitoring Deployment
 
 ```bash
-# Watch ArgoCD applications
-watch oc get applications.argoproj.io -n openshift-gitops
-
 # Check telco-hub application status
 oc describe applications.argoproj.io telco-hub -n telco-hub-pattern-hub
 
-# View kustomize-generated resources
-oc get all -l app.kubernetes.io/managed-by=ArgoCD
+# Check clusters and policies applications to view status of deployed managed clusters
+oc describe applications.argoproj.io telco-hub -n telco-hub-pattern
+
+# View all the ArgoCD applications managed by the pattern
+./pattern.sh make argo-healthcheck
 ```
 
 ### Access ArgoCD UI
 
+Retrieve the route for the `telco-hub` application:
+
 ```bash
 # Get ArgoCD route
-echo "ArgoCD UI: https://$(oc get route openshift-gitops-server -n openshift-gitops -o jsonpath='{.spec.host}')"
+echo "ArgoCD UI: https://$(oc get route hub-gitops-server -n telco-hub-pattern-hub -o jsonpath='{.spec.host}')"
 
 # Get admin password
-oc extract secret/openshift-gitops-cluster -n telco-hub-pattern-hub --to=-
+oc extract secret/hub-gitops-cluster -n telco-hub-pattern-hub --to=-
+```
+
+Retrieve the route for the `clusters` and `policies` applications:
+
+```bash
+# Get ArgoCD route
+echo "ArgoCD UI: https://$(oc get route telco-hub-gitops-server -n telco-hub-pattern -o jsonpath='{.spec.host}')"
+
+# Get admin password
+oc extract secret/telco-hub-gitops-cluster -n telco-hub-pattern --to=-
 ```
 
 > **NOTE:** To access ArgoCD UI you can also use the nine box available in the Red Hat OpenShift Console.
