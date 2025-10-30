@@ -14,7 +14,7 @@ kind: Kustomization
 
 resources:
   # Required: Local Registry
-  # The Telco Hub Reference Design Specifications targets disconnected environment, hence this component is enabled by default.
+  # The Telco Hub Reference Design Specifications targets disconnected environments, hence this component is enabled by default.
   - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/required/registry
 
   # Required: Advanced Cluster Management (ACM)
@@ -25,7 +25,7 @@ resources:
   # Required: GitOps Operator
   # The telco-hub component creates the GitOps/ArgoCD instance used to manage spoke clusters. This instance
   # includes resource tuning for scalability and an ACM plugin for simplified creation of policies. The validated
-  # pattern clustergroup chart does not make these tunings availabile, so a dedicated instances is created through
+  # pattern clustergroup chart does not make these tunings available, so a dedicated instance is created through
   # the `gitops` content. This dedicated instance has all the necessary tuning already included so the
   # `reference-crs/required/gitops` component does not need to be included. These `gitops` must be included
   # prior to the other components.
@@ -40,11 +40,11 @@ resources:
   # - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/required/gitops/ztp-installation
 
   # Optional: Local Storage Operator (LSO)
-  # Enable this telco-hub component if you use LSO as you storage backend!
+  # Enable this telco-hub component if you use LSO as your storage backend!
   - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/optional/lso
 
   # Optional: Open Data Foundation (ODF)
-  # Enable this telco-hub component if you use ODF as you storage backend!
+  # Enable this telco-hub component if you use ODF as your storage backend!
   - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/optional/odf-internal
 
   # Optional: Logging Operator
@@ -379,28 +379,6 @@ patches:
 
   # Sample patches for this telco-hub component can be found in the below link:
   # - https://github.com/openshift-kni/telco-reference/tree/main/telco-hub/configuration/example-overlays-config/gitops
-
-  # Configure SSH known hosts for Git repository authentication
-  # Ref: https://argo-cd.readthedocs.io/en/stable/operator-manual/declarative-setup/#ssh-known-host-public-keys
-  - target:
-      version: v1
-      kind: ConfigMap
-      name: argocd-ssh-known-hosts-cm
-    patch: |-
-      - op: replace
-        path: /data/ssh_known_hosts
-        value: |
-          #############################################################
-          # by default empty known hosts, because of usual            #
-          # disconnected environments.                                #
-          #                                                           #
-          #  Manually add needed ssh known hosts:                     #
-          #  example: $> ssh-keyscan my-github.com                    #
-          #  Copy the output here
-          #############################################################
-          # my-github.com sh-rsa AAAAB3NzaC1y...J4i36KV/aCl4Ixz
-          # my-github.com ecdsa-sha2-nistp256...GGtLKqmwLLeKhe6xgc=
-          # my-github-com ssh-ed25519 AAAAC3N...lNrvWjBQ2u
 
   # Configure TLS certificates for Git repository access
   - target:
