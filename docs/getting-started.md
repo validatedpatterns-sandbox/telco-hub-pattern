@@ -206,11 +206,18 @@ patches:
         value: <registry.example.com:8443>/openshift-marketplace/redhat-operators-disconnected:v4.20
 ```
 
-### 3. Deploy the pattern (loads secrets if configured)
+Commit and push telco-hub pattern overlay:
 
 ```bash
-# Deploy using the pattern framework
-./pattern.sh make operator-deploy
+git commit -m "Configure telco-hub pattern overlay"
+git push
+```
+
+### 3. Install the pattern (loads secrets if configured)
+
+```bash
+# Install using the pattern framework
+./pattern.sh make install
 ```
 
 ### 4. Update the pattern (does not load secrets)
