@@ -46,7 +46,7 @@ cd telco-hub-pattern
 vim ./kustomize/overlays/telco-hub/kustomization.yaml
 
 # Commit and push kustomize overlay
-git commit -m "Configure telco-hub pattern overlay"
+git commit ./kustomize/overlays/telco-hub/kustomization.yaml
 git push
 
 # Install the pattern (Loads secrets if configured)
