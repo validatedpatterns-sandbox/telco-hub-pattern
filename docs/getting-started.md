@@ -177,19 +177,19 @@ resources:
   - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/required/talm
 
   # Workflow: GitOps ZTP Installation
-  # Enable this telco-hub component if you deploy clusters via GitOps ZTP!
+  # Enable this telco-hub component if you deploy clusters via GitOps ZTP.
   # - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/required/gitops/ztp-installation
 
   # Optional: Local Storage Operator (LSO)
-  # Enable this telco-hub component if you use LSO as your storage backend!
+  # Enable this telco-hub component if you use LSO to manage storage for ODF.
   - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/optional/lso
 
   # Optional: Open Data Foundation (ODF)
-  # Enable this telco-hub component if you use ODF as your storage backend!
+  # Enable this telco-hub component if you use ODF as your storage backend.
   - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/optional/odf-internal
 
   # Optional: Logging Operator
-  # Enable this telco-hub component if you use the logging operator!
+  # Enable this telco-hub component if you use the logging operator.
   # - https://github.com/openshift-kni/telco-reference//telco-hub/configuration/reference-crs/optional/logging
 
 
@@ -209,7 +209,7 @@ patches:
 Commit and push telco-hub pattern overlay:
 
 ```bash
-git commit -m "Configure telco-hub pattern overlay"
+git commit ./kustomize/overlays/telco-hub/kustomization.yaml   # Configure telco-hub pattern overlay
 git push
 ```
 
