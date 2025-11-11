@@ -2,7 +2,7 @@
 
 > **Image mirroring procedure for deploying the Telco Hub Pattern in air-gapped and disconnected network environments.**
 
-[![OpenShift](https://img.shields.io/badge/OpenShift-4.14+-red?logo=redhat)](https://www.redhat.com/en/technologies/cloud-computing/openshift)
+[![OpenShift](https://img.shields.io/badge/OpenShift-4.19+-red?logo=redhat)](https://www.redhat.com/en/technologies/cloud-computing/openshift)
 [![Validated Patterns](https://img.shields.io/badge/Validated-Patterns-blue)](https://validatedpatterns.io/)
 [![Air-Gapped](https://img.shields.io/badge/Air--Gapped-Supported-green)](https://validatedpatterns.io/blog/2024-10-12-disconnected/)
 

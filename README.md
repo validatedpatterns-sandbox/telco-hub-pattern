@@ -2,7 +2,7 @@
 
 > **A GitOps-based validated pattern for deploying and managing Telco Hub infrastructure using Red Hat OpenShift, Advanced Cluster Management (ACM), and Zero Touch Provisioning (ZTP).**
 
-[![OpenShift](https://img.shields.io/badge/OpenShift-4.14+-red?logo=redhat)](https://www.redhat.com/en/technologies/cloud-computing/openshift)
+[![OpenShift](https://img.shields.io/badge/OpenShift-4.19+-red?logo=redhat)](https://www.redhat.com/en/technologies/cloud-computing/openshift)
 [![Validated Patterns](https://img.shields.io/badge/Validated-Patterns-blue)](https://validatedpatterns.io/)
 [![Helm](https://img.shields.io/badge/Helm-3.8+-blue?logo=helm)](https://helm.sh/)
 [![ArgoCD](https://img.shields.io/badge/ArgoCD-GitOps-green?logo=argo)](https://argoproj.github.io/cd/)
@@ -31,7 +31,7 @@ The **Telco Hub Pattern** delivers a production-ready, GitOps-based solution for
 
 ### Prerequisites
 
-- **OpenShift 4.14+** cluster with cluster-admin privileges
+- **OpenShift 4.19+** cluster with cluster-admin privileges
 - **Git repository** access for telco-reference configurations
 - **oc CLI** tool configured and authenticated
 

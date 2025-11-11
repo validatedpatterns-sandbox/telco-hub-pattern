@@ -2,7 +2,7 @@
 
 > **Complete guide to deploy and configure the Telco Hub Pattern for GitOps-based telco-hub management using Red Hat OpenShift, Advanced Cluster Management (ACM), and Zero Touch Provisioning (ZTP).**
 
-[![OpenShift](https://img.shields.io/badge/OpenShift-4.14+-red?logo=redhat)](https://www.redhat.com/en/technologies/cloud-computing/openshift)
+[![OpenShift](https://img.shields.io/badge/OpenShift-4.19+-red?logo=redhat)](https://www.redhat.com/en/technologies/cloud-computing/openshift)
 [![Validated Patterns](https://img.shields.io/badge/Validated-Patterns-blue)](https://validatedpatterns.io/)
 [![Helm](https://img.shields.io/badge/Helm-3.8+-blue?logo=helm)](https://helm.sh/)
 [![ArgoCD](https://img.shields.io/badge/ArgoCD-GitOps-green?logo=argo)](https://argoproj.github.io/cd/)
@@ -104,7 +104,7 @@ telco-hub-pattern/
 
 #### OpenShift Cluster
 
-- **Version**: OpenShift 4.14 or later
+- **Version**: OpenShift 4.19 or later
 - **Size**: Compact cluster 3:0 nodes (minimum)
 - **Storage**: 500GB+ available storage
 - **Network**: internet connectivity for operator installations
@@ -115,7 +115,7 @@ telco-hub-pattern/
 
 ```bash
 # Required CLI tools
-oc version              # OpenShift CLI 4.14+
+oc version              # OpenShift CLI 4.19+
 git --version           # Git 2.x+
 
 # Optional but recommended
